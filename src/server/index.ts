@@ -8,9 +8,11 @@ import connectLiveReload from "connect-livereload";
 import livereload from "livereload";
 import {timeMiddleware} from "./middleware/time";
 
-import rootRoutes from "./routes/root";
-
 dotenv.config();
+
+import authRoutes from "./routes/auth";
+import rootRoutes from "./routes/root";
+import gameRoutes from "./routes/games";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,12 +20,25 @@ const PORT = process.env.PORT || 3000;
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(process.cwd(), "src", "public")));
+
+const staticPath = path.join(process.cwd(), "src", "public");
+app.use(express.static(staticPath));
+
+if (process.env.NODE_ENV === "development") {
+    const reloadServer = livereload.createServer();
+
+    reloadServer.watch(staticPath);
+    app.use(connectLiveReload());
+}
+
 app.use(cookieParser());
 app.set("views", path.join(process.cwd(), "src", "server", "views"));
 app.set("view engine", "ejs");
 
+// app.use(express.static(path.join(process.cwd(), "src", "public")));
 app.use("/", rootRoutes);
+app.use("/auth", authRoutes);
+app.use("/games", gameRoutes);
 
 app.use((_request, _response, next) => {
     next(httpErrors(404, "Page Not Found"));
@@ -33,18 +48,6 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-const staticPath = path.join(process.cwd(), "src", "public");
-app.use(express.static(staticPath));
 
-if (process.env.NODE_ENV === "development") {
-    console.log("Hello from a bunffffdled asset.");
-    const reloadServer = livereload.createServer();
 
-    reloadServer.watch(staticPath);
-    reloadServer.server.once("connection", () => {
-        setTimeout(() => {
-            reloadServer.refresh("/");
-        }, 100);
-    });
-    app.use(connectLiveReload());
-}
+
