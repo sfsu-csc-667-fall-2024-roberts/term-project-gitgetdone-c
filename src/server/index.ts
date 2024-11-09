@@ -10,9 +10,10 @@ import {timeMiddleware} from "./middleware/time";
 
 dotenv.config();
 
-import authRoutes from "./routes/auth";
-import rootRoutes from "./routes/root";
-import gameRoutes from "./routes/games";
+import authRoutes  from "./routes/auth";
+import rootRoutes  from "./routes/root";
+import gameRoutes  from "./routes/games";
+import lobbyRoutes from "./routes/lobby";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -39,6 +40,7 @@ app.set("view engine", "ejs");
 app.use("/", rootRoutes);
 app.use("/auth", authRoutes);
 app.use("/games", gameRoutes);
+app.use("/lobby", lobbyRoutes)
 
 app.use((_request, _response, next) => {
     next(httpErrors(404, "Page Not Found"));
