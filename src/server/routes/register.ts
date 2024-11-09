@@ -3,7 +3,7 @@ import express from "express";
 const router = express.Router();
 
 router.get("/", (_request, response) => {
-    response.render("login", { title: "Login" });
+    response.render("register", { title: "Register" });
 });
 
 export default router;
