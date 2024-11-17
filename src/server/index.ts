@@ -4,32 +4,30 @@ import express from "express";
 import httpErrors from "http-errors";
 import morgan from "morgan";
 import * as path from "path";
-import connectLiveReload from "connect-livereload";
-import livereload from "livereload";
-import {timeMiddleware} from "./middleware/time";
-
 
 dotenv.config();
 
+import * as config from "./config";
+import * as routes from "./routes";
+import checkAuthentication from "./middleware/check-authentication";
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-import * as routes from "./routes/manifest";
-import configureLiveReload from "./config/livereload";
-
-app.use("/", routes.home);
-app.use("/lobby", routes.mainLobby);
-app.use("/auth", routes.auth);
-app.use("/games", routes.games);
 
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+app.use("/", routes.home);
+app.use("/lobby", checkAuthentication, routes.mainLobby);
+app.use("/auth", routes.auth);
+app.use("/games", checkAuthentication, routes.games);
+
 const staticPath = path.join(process.cwd(), "src", "public");
 app.use(express.static(staticPath));
 
-configureLiveReload(app, staticPath);
+config.livereload(app, staticPath);
+config.session(app);
 
 app.use(cookieParser());
 app.set("views", path.join(process.cwd(), "src", "server", "views"));

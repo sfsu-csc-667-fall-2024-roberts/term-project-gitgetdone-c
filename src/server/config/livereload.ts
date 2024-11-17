@@ -2,8 +2,7 @@ import connectLiveReload from "connect-livereload";
 import type { Express } from "express";
 import livereload from "livereload";
 
-const configureLiveReload = (app: Express, staticPath: string) =>
-{
+export default (app: Express, staticPath: string) => {
     if (process.env.NODE_ENV === "development") {
         const reloadServer = livereload.createServer();
 
@@ -16,5 +15,3 @@ const configureLiveReload = (app: Express, staticPath: string) =>
         app.use(connectLiveReload());
     }
 };
-
-export default configureLiveReload;
