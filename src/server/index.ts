@@ -4,73 +4,65 @@ import express from "express";
 import httpErrors from "http-errors";
 import morgan from "morgan";
 import * as path from "path";
-import http from "http";
-import { Server } from "socket.io"; // Import Server from socket.io
+import connectLiveReload from "connect-livereload";
+import livereload from "livereload";
+import { timeMiddleware } from "./middleware/time";
+import authApiRoutes from "./routes/authApiRoutes";
+import authRoutes from "./routes/auth"; // Handles rendering (views)
+import rootRoutes from "./routes/root";
+import gameRoutes from "./routes/games";
+import lobbyRoutes from "./routes/lobby";
+import loginRoutes from "./routes/login";
 
 dotenv.config();
-
-import * as config from "./config";
-import * as routes from "./routes";
-import checkAuthentication from "./middleware/check-authentication";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Create HTTP server and initialize Socket.IO
-const server = http.createServer(app);
-const io = new Server(server); // Initialize Socket.IO with the HTTP server
-
-// WebSocket connection setup
-io.on("connection", (socket) => {
-  // Now using `socket` directly
-  console.log("a user connected");
-
-  // Handle incoming chat messages
-  socket.on("chat message", (msg: string) => {
-    // Explicit typing for `msg`
-    console.log("message: " + msg);
-    // Broadcast message to all connected clients
-    io.emit("chat message", msg);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("user disconnected");
-  });
-});
-
+// Middleware for logging, parsing JSON, and URL-encoded data
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Routes
-app.use("/", routes.home);
-app.use("/lobby", checkAuthentication, routes.mainLobby);
-app.use("/auth", routes.auth);
-app.use("/games", checkAuthentication, routes.games);
-
-// Serve static files (e.g., for images, CSS, JS)
+// Static file serving
 const staticPath = path.join(process.cwd(), "src", "public");
 app.use(express.static(staticPath));
 
-// Livereload for development environment
-config.livereload(app, staticPath);
+// Enable LiveReload for development
+if (process.env.NODE_ENV === "development") {
+  const reloadServer = livereload.createServer({ port: 35730 });
+  reloadServer.watch(staticPath);
+  app.use(connectLiveReload());
+}
 
-// Session management
-config.session(app);
-
-// Middleware to handle cookies
+// Middleware for cookies and custom time middleware
 app.use(cookieParser());
+app.use(timeMiddleware);
 
-// View engine setup
+// Set views directory and view engine
 app.set("views", path.join(process.cwd(), "src", "server", "views"));
 app.set("view engine", "ejs");
 
-// 404 error handling
+// Route definitions
+app.use("/", rootRoutes); // Root route
+app.use("/auth", authRoutes); // Routes for rendering login/register views
+app.use("/api/auth", authApiRoutes); // API routes for registration/login logic
+app.use("/games", gameRoutes); // Game routes
+app.use("/lobby", lobbyRoutes); // Lobby routes
+app.use("/login", loginRoutes); // Route for rendering login page
+
+// 404 Error handling
 app.use((_request, _response, next) => {
   next(httpErrors(404, "Page Not Found"));
 });
 
-// Start the server
-server.listen(PORT, () => {
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({ error: err.message });
+});
+
+// Start server
+app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

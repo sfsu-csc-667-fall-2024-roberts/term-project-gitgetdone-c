@@ -51,11 +51,19 @@
 </head>
 <body>
 <h1>Login</h1>
-<form action="/login" method="post">
+<!-- <form action="/login" method="post">
+    <input type="email" name="email" placeholder="Enter your email" required />
+    <input type="password" name="password" placeholder="Enter your password" required />
+    <button type="submit">Login</button>
+</form>
+<p class="info-text">Don't have an account? <a href="/auth/register">Register here</a>.</p> -->
+
+<form action="/api/auth/login" method="post">
     <input type="email" name="email" placeholder="Enter your email" required />
     <input type="password" name="password" placeholder="Enter your password" required />
     <button type="submit">Login</button>
 </form>
 <p class="info-text">Don't have an account? <a href="/auth/register">Register here</a>.</p>
+
 </body>
 </html>
