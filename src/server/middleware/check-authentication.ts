@@ -12,6 +12,7 @@ export default (
         response.redirect("/login");
     }
     else {
+        response.locals = response.locals || {};
         // @ts-expect-error TODO fix this error for session
         response.locals.users = request.session.user;
         next();

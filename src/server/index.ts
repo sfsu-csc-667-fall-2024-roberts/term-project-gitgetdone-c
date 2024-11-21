@@ -18,6 +18,8 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+config.session(app);
+
 app.use("/", routes.home);
 app.use("/lobby", checkAuthentication, routes.mainLobby);
 app.use("/auth", routes.auth);
@@ -27,7 +29,7 @@ const staticPath = path.join(process.cwd(), "src", "public");
 app.use(express.static(staticPath));
 
 config.livereload(app, staticPath);
-config.session(app);
+
 
 app.use(cookieParser());
 app.set("views", path.join(process.cwd(), "src", "server", "views"));

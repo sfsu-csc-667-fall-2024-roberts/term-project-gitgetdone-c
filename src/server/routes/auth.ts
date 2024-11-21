@@ -14,7 +14,7 @@ type RegisterRequest = Request<{
 }>;
 
 type LoginRequest = Request<{
-    username: string;
+    email: string;
     password: string;
 }>;
 
@@ -24,9 +24,15 @@ router.post("/register", async (request: RegisterRequest, response) => {
     try {
         // @ts-expect-error TODO fix this error for session
         request.session.user = await Users.create({ username, email, password });
-        request.session.save();
 
-        response.redirect("/lobby");
+        request.session.save((err) => {
+            if (err) {
+                console.error("Session save error:", err);
+                return response.redirect("/auth/register");
+            }
+            console.log("Session saved successfully.");
+            response.redirect("/lobby");
+        });
     } catch (error) {
         // TODO: Implement error handling
         console.error(error);
@@ -39,13 +45,21 @@ router.get("/login", (_request, response) => {
 });
 
 router.post("/login", async (request: LoginRequest, response) => {
-    const { username, password } = request.body;
+    const { email, password } = request.body;
 
     try {
+        console.log("Login attempt for:", email);
         // @ts-expect-error TODO fix this error for session
-        request.session.user = await Users.login({ username, password });
-        request.session.save();
-        response.redirect("/lobby");
+        request.session.user = await Users.login({ email, password });
+
+        request.session.save((err) => {
+            if (err) {
+                console.error("Session save error:", err);
+                return response.redirect("/auth/login");
+            }
+            console.log("Session saved successfully.");
+            response.redirect("/lobby");
+        });
     } catch (error) {
         console.error(error);
         response.redirect("login");
