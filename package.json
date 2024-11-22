@@ -12,7 +12,7 @@
     "prepare": "husky install",
     "db:create": "node-pg-migrate create -j ts --",
     "db:migrate": "ts-node node_modules/node-pg-migrate/bin/node-pg-migrate.js up -j ts",
-    "db:rollback": "ts-node node_modules/node-pg-migrate/bin/node-pg-migrate.js down -j"
+    "db:rollback": "ts-node node_modules/node-pg-migrate/bin/node-pg-migrate.js down -j ts"
   },
   "keywords": [],
   "author": "",

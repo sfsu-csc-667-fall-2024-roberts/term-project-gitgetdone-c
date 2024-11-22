@@ -52,27 +52,38 @@ const findByUsername = async (username: string) => {
     return db.one(FIND_BY_USERNAME, [username]);
 }
 
-const login = async (user: Omit<User, "email">) => {
+const login = async ({ email, password }: { email: string; password: string }) => {
     try {
-        const possibleUser = await findByUsername(user.username);
-        const isValid = await bcrypt.compare(user.password, possibleUser.password);
+        // Find the user by email
+        const result = await db.query(
+            "SELECT * FROM users WHERE email = $1",
+            [email]
+        );
 
-        if (isValid) {
-            return {
-                id: possibleUser.id,
-                username: possibleUser.username,
-                email: possibleUser.email,
-                gravatar: possibleUser.gravatar,
-            };
+        console.log("Database query result:", result);
+
+        if (!result || result.length === 0) {
+            throw new Error("Invalid email or user does not exist.");
         }
 
-        throw new Error("A user with that username and password does not exist.")
-    }
-    catch (error) {
-        console.error(error);
+        const user = result[0];
 
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            throw new Error("Invalid credentials");
+        }
+
+        return {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            gravatar: user.gravatar,
+        };
+    } catch (error) {
+        // @ts-ignore
+        console.error("Login error:", error.messsage);
         throw error;
     }
-}
+};
 
 export default { create, findById, findByEmail, findByUsername, login };

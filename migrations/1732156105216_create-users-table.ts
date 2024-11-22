@@ -1,4 +1,4 @@
-import { ColumnDefinitions, MigrationBuilder } from "node-pg-migrate";
+import { ColumnDefinitions, MigrationBuilder } from 'node-pg-migrate';
 
 export const shorthands: ColumnDefinitions | undefined = undefined;
 
@@ -19,7 +19,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             notNull: true,
         },
         password: {
-            type: "varchar(100)", // Adjust size based on hashing method used (e.g., bcrypt)
+            type: "varchar(100)",
             notNull: true,
         },
         created_at: {
