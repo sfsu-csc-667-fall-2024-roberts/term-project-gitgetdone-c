@@ -6,6 +6,9 @@ import morgan from "morgan";
 import * as path from "path";
 import connectLiveReload from "connect-livereload";
 import livereload from "livereload";
+import { createServer } from "http"; // Import for WebSocket
+import { Server } from "socket.io"; // Import for WebSocket
+
 import { timeMiddleware } from "./middleware/time";
 import authApiRoutes from "./routes/authApiRoutes";
 import authRoutes from "./routes/auth"; // Handles rendering (views)
@@ -18,6 +21,26 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Create HTTP and WebSocket servers
+const httpServer = createServer(app);
+const io = new Server(httpServer);
+
+// WebSocket Implementation
+io.on("connection", (socket) => {
+  console.log("A user connected");
+
+  // Listen for chat messages
+  socket.on("chat message", (msg) => {
+    console.log("Message received: ", msg);
+    io.emit("chat message", msg); // Broadcast the message to all connected clients
+  });
+
+  // Handle disconnect
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
+  });
+});
 
 // Middleware for logging, parsing JSON, and URL-encoded data
 app.use(morgan("dev"));
@@ -57,12 +80,19 @@ app.use((_request, _response, next) => {
 });
 
 // Global error handler
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({ error: err.message });
-});
+app.use(
+  (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+  ) => {
+    console.error(err.stack);
+    res.status(err.status || 500).json({ error: err.message });
+  },
+);
 
 // Start server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
