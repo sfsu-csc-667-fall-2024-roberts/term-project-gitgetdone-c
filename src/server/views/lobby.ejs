@@ -1,11 +1,85 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
-</head>
-<body>
-    <h1>Welcome to the Game Lobby</h1>
-</body>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Navbar -->
+    <div class="flex justify-between items-center bg-gray-800 px-6 py-4">
+      <div class="flex items-center">
+        <span class="text-lg font-semibold">Game Name / Logo</span>
+        <button class="ml-4 bg-yellow-500 text-gray-900 px-3 py-1 rounded">
+          Coin +
+        </button>
+      </div>
+      <h1 class="text-2xl font-bold text-yellow-400">UNO</h1>
+      <div class="flex space-x-4">
+        <button class="bg-blue-500 px-4 py-2 rounded">Profile</button>
+        <button class="bg-red-500 px-4 py-2 rounded">Logout</button>
+      </div>
+    </div>
+
+    <!-- Welcome Section -->
+    <div class="p-8 text-center">
+      <h2 class="text-3xl font-bold text-green-400 mb-4">
+        Welcome to UNO Game
+      </h2>
+      <p class="text-lg mb-6">
+        Please select your game or start your new game with your team member.
+      </p>
+      <a href="#" class="text-pink-500 hover:underline mb-6 inline-block">
+        Invite Your Friend
+      </a>
+    </div>
+
+    <!-- Split Layout -->
+    <div class="grid grid-cols-3 gap-6 px-8">
+      <!-- Left Section -->
+      <div class="col-span-2">
+        <div class="flex space-x-4 mb-8">
+          <button class="bg-gray-700 px-6 py-3 rounded w-1/4">
+            Open Games
+          </button>
+          <button class="bg-gray-700 px-6 py-3 rounded w-1/4">New Game</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-gray-800 p-4 rounded">
+            <img
+              src="/images/game1.jpg"
+              alt="Game 1"
+              class="w-full h-94 object-cover rounded"
+            />
+            <p class="text-center mt-2">Game 1</p>
+          </div>
+          <div class="bg-gray-800 p-4 rounded">
+            <img
+              src="/images/game2.jpg"
+              alt="Game 2"
+              class="w-full h-94 object-cover rounded"
+            />
+            <p class="text-center mt-2">Game 2</p>
+          </div>
+          <div class="bg-gray-800 p-4 rounded">
+            <img
+              src="/images/game3.jpg"
+              alt="Game 3"
+              class="w-full h-94 object-cover rounded"
+            />
+            <p class="text-center mt-2">Game 3</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Section (Chat) -->
+      <%- include('chat') %>
+    </div>
+
+    <!-- Include External Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/chat.js"></script>
+  </body>
 </html>
