@@ -5,16 +5,17 @@ export default (
     _response: Response,
     next: NextFunction
 ) => {
-    console.log(request.session);
+    console.log("Session in Middleware: ", request.session);
 
     // @ts-expect-error TODO fix this error for session
     if (!request.session.user) {
-        response.redirect("/login");
+        console.log("Invalid authentication");
+        return response.redirect("/auth/login");
     }
-    else {
-        response.locals = response.locals || {};
-        // @ts-expect-error TODO fix this error for session
-        response.locals.users = request.session.user;
-        next();
-    }
+
+    response.locals = response.locals || {};
+    // @ts-expect-error TODO fix this error for session
+    response.locals.user = request.session.user;
+
+    next();
 };

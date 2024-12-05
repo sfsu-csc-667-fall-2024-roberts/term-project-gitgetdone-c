@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    Welcome to the Game Lobby
+    Welcome to the Game Lobby, <%= user.username %>
+
+    <%- include('./partials/chat.ejs', { roomId: roomId }) %>
+    <%- include('./partials/footer.ejs') %>
 </body>
 </html>
