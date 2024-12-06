@@ -1,6 +1,12 @@
 <aside id="chat-section">
-    <div id="messages"> </div>
-    <form action="/chat/<%= roomId %>">
+    <template id="chat-message-template">
+        <li class = "chat-message">
+            <span class="content"></span>
+        </li>
+    </template>
+
+    <ul id="messages"> </ul>
+    <form action="/chat/<%= roomId %>" method="post">
         <input id="chat-message" autocomplete="off" /><button>Send</button>
     </form>
 </aside>

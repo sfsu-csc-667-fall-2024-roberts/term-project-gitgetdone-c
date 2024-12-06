@@ -5,9 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    Welcome to the Game Lobby, <%= user.username %>
+</body>
+</html>
 
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+<!-- Navbar -->
+<div class="flex justify-between items-center bg-gray-800 px-6 py-4">
+    <h1 class="text-2xl font-bold text-yellow-400"><%= user.username %></h1>
+    <div class="flex space-x-4">
+        <button class="bg-red-500 px-4 py-2 rounded"><a href="/auth/logout">Logout</a></button>
+    </div>
+</div>
+<!-- Welcome Section -->
+<div class="p-8 text-center">
+    <h2 class="text-3xl font-bold text-green-400 mb-4">
+        UNO
+    </h2>
+</div>
+<!-- Split Layout -->
+<div class="grid grid-cols-3 gap-6 px-8">
+    <!-- Left Section -->
+    <div class="col-span-2">
+        <div class="flex space-x-4 mb-8">
+            <button class="bg-gray-700 px-6 py-3 rounded w-1/4">
+                Open Games
+            </button>
+            <button class="bg-gray-700 px-6 py-3 rounded w-1/4">New Game</button>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+            <div class="bg-gray-800 p-4 rounded">
+
+                <p class="text-center mt-2">Game 1</p>
+            </div>
+            <div class="bg-gray-800 p-4 rounded">
+                <p class="text-center mt-2">Game 2</p>
+            </div>
+            <div class="bg-gray-800 p-4 rounded">
+                <p class="text-center mt-2">Game 3</p>
+            </div>
+        </div>
+    </div>
     <%- include('./partials/chat.ejs', { roomId: roomId }) %>
     <%- include('./partials/footer.ejs') %>
+</div>
 </body>
 </html>

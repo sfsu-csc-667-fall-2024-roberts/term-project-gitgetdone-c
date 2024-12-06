@@ -46,7 +46,7 @@ eval("/**\n * Helpers.\n */\n\nvar s = 1000;\nvar m = s * 60;\nvar h = m * 60;\n
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst socket_io_client_1 = __webpack_require__(/*! socket.io-client */ \"./node_modules/socket.io-client/build/cjs/index.js\");\nconst socket = (0, socket_io_client_1.io)();\nconsole.log(\"socket\", socket);\n\n\n//# sourceURL=webpack://uno-project/./src/client/main.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst socket_io_client_1 = __webpack_require__(/*! socket.io-client */ \"./node_modules/socket.io-client/build/cjs/index.js\");\n//@ts-expect-error TODO: Define the socket object on window for TS\nwindow.socket = (0, socket_io_client_1.io)();\n//console.log(\"socket\", socket);\n\n\n//# sourceURL=webpack://uno-project/./src/client/main.ts?");
 
 /***/ }),
 

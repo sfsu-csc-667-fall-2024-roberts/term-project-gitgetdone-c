@@ -27,6 +27,7 @@ app.use("/", routes.home);
 app.use("/lobby", checkAuthentication, routes.mainLobby);
 app.use("/auth", routes.auth);
 app.use("/games", checkAuthentication, routes.games);
+app.use("/chat", checkAuthentication, routes.chat);
 
 const staticPath = path.join(process.cwd(), "src", "public");
 app.use(express.static(staticPath));
