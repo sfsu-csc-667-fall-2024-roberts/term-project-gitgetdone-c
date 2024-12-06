@@ -1,8 +1,8 @@
-import {NextFunction, Request, response, Response} from "express";
+import {NextFunction, Request, Response} from "express";
 
 export default (
     request: Request,
-    _response: Response,
+    response: Response,
     next: NextFunction
 ) => {
     console.log("Session in Middleware: ", request.session);
