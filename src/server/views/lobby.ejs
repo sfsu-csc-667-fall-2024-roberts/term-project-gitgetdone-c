@@ -35,24 +35,26 @@
     <!-- Left Section -->
     <div class="col-span-2">
         <div class="flex space-x-4 mb-8">
-            <button class="bg-gray-700 px-6 py-3 rounded w-1/4">
-                Open Games
-            </button>
-            <button class="bg-gray-700 px-6 py-3 rounded w-1/4">New Game</button>
+            <form method="post" action="/games/create">
+                <button class="bg-gray-700 px-6 py-3 rounded w-1/4">New Game</button>
+            </form>
         </div>
-        <div class="grid grid-cols-3 gap-4">
-            <div class="bg-gray-800 p-4 rounded">
 
-                <p class="text-center mt-2">Game 1</p>
-            </div>
-            <div class="bg-gray-800 p-4 rounded">
-                <p class="text-center mt-2">Game 2</p>
-            </div>
-            <div class="bg-gray-800 p-4 rounded">
-                <p class="text-center mt-2">Game 3</p>
-            </div>
-        </div>
+
+        <% locals.availableGames !== undefined && availableGames.forEach((room) => { %>
+            <tr>
+                <td class="border-b-[1px] border-gray-400 py-[4px]">Game <%= room.id %></td>
+                <td class="border-b-[1px] border-gray-400 py-[4px]">(<%= room.players%> / <%= room.player_count %>)</td>
+                <td class="text-center border-b-[1px] border-gray-400 py-[4px]">
+                    <form action="/join/<%= room.id %>" method="post">
+                        <button class="bg-blue-200 rounded-sm px-1 border-[1px] border-blue-800">Join</button>
+                    </form>
+                </td>
+            </tr>
+        <% }); %>
     </div>
+
+
     <%- include('./partials/chat.ejs', { roomId: roomId }) %>
     <%- include('./partials/footer.ejs') %>
 </div>

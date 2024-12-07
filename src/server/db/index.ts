@@ -46,5 +46,6 @@ const findByEmail = (email: string): Promise<UserWithPassword> =>
 
 export default { register, login, findByEmail };
 export { default as Users } from "./users";
+export { default as Games } from "./games";
 export { default as configureLiveReload } from "../config/livereload";
 export { default as configureSession } from "../config/session";
