@@ -1,20 +1,35 @@
 import db from "../connection";
-import {ADD_PLAYER, AVAILABLE_GAMES, CREATE_GAME} from "./sql";
+import {ADD_PLAYER, AVAILABLE_GAMES, CREATE_GAME, IS_USER_IN_GAME, GET_GAME_INFO } from "./sql";
 
-const create = async (playerId: number) => {
-    const game = await db.one<{id: number}>(CREATE_GAME);
-
-    await db.none(ADD_PLAYER, [game.id, playerId]);
-
-    return game.id;
+type GameDescription = {
+    id: number;
+    players: number;
+    player_count: number;
 };
 
-const join = async (playerId: number, gameId: number, seat:number) => {
-    await db.none(ADD_PLAYER, [gameId, playerId, seat]);
+const create = async (playerId: number): Promise<GameDescription> => {
+    const game = await db.one<GameDescription>(CREATE_GAME);
+
+    await db.one(ADD_PLAYER, [game.id, playerId]);
+
+    return game;
+};
+
+const join = async (playerId: number, gameId: number): Promise<GameDescription> => {
+    return await db.one<GameDescription>(ADD_PLAYER, [gameId, playerId]);
 }
 
 const availableGames = async (limit: number = 20, offset: number = 0) => {
     return db.any(AVAILABLE_GAMES, [limit, offset]);
 }
 
-export default {create, join, availableGames};
+const isUserInGame = async (userId: number, gameId: number): Promise<boolean> => {
+    const result = await db.oneOrNone(IS_USER_IN_GAME, [gameId, userId]);
+    return !!result;
+};
+
+const getGameInfo = async (gameId: number) => {
+    return db.one(GET_GAME_INFO, [gameId]);
+};
+
+export default { create, join, availableGames, isUserInGame, getGameInfo };

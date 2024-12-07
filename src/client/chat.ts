@@ -27,7 +27,6 @@ form.addEventListener('submit', (e) => {
 
 // IIFE
 (() => {
-    // @ts-expect-error TODO: Define the socket object on window for TS
     window.socket.on(
         "message:0",
         (payload: {

@@ -5,7 +5,7 @@ export default (
     response: Response,
     next: NextFunction
 ) => {
-    console.log("Session in Middleware: ", request.session);
+    // console.log("Session in Middleware: ", request.session);
 
     // @ts-expect-error TODO fix this error for session
     if (!request.session.user) {
