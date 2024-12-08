@@ -69,11 +69,14 @@ router.post("/login", async (request: LoginRequest, response) => {
 router.get("/logout", async (request, response) => {
     request.session.destroy((error) => {
         if (error) {
-            console.error(error);
+            console.error("Error destroying session:", error);
+            return response.redirect("/");
         }
-    });
 
-    response.redirect("/");
+        response.clearCookie("connect.sid")
+        console.log("Logged out");
+        response.redirect("/auth/login");
+    });
 });
 
 export default router;
