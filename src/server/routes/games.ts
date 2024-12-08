@@ -29,25 +29,35 @@ router.post("/join/:gameId", async (request, response) => {
     const {gameId} = request.params;
     const game_id = parseInt(gameId, 10);
 
-    const userInGame = await Games.isUserInGame(user_id, game_id);
-    if (userInGame) {
-        return response.redirect("/lobby?error=already-in-game");
-    }
+    try {
+        const userInGame = await Games.isUserInGame(user_id, game_id);
+        if (userInGame) {
+            return response.redirect(`/games/${gameId}`);
+        }
 
-    const gameInfo = await Games.getGameInfo(game_id);
-    const players = parseInt(gameInfo.players, 10);
-    const maxPlayers = parseInt(gameInfo.player_count, 10);
+        const gameInfo = await Games.getGameInfo(game_id);
 
-    if (players >= maxPlayers) {
-        return response.redirect("/lobby?error=game-full");
-    }
+        if (!gameInfo) {
+            return response.redirect("/lobby?error=game-not-found");
+        }
 
-    const game = await Games.join(user_id, game_id);
-    game.players = 1;
+        const players = parseInt(gameInfo.players, 10);
+        const maxPlayers = parseInt(gameInfo.player_count, 10);
 
-    request.app.get("io").emit("game-updated", game);
+        if (players >= maxPlayers) {
+            return response.redirect("/lobby?error=game-full");
+        }
 
-    response.redirect(`/games/${gameId}`);
+        const game = await Games.join(user_id, game_id);
+        game.players = 1;
+
+        request.app.get("io").emit("game-updated", game);
+
+        response.redirect(`/games/${gameId}`);
+    } catch (error) {
+        console.error("Error joining game:", error);
+        return response.redirect("/lobby?error=unknown-error");
+}
 });
 
 router.get("/:gameId", checkAuthentication, chatMiddleware, (request, response) => {
