@@ -1,14 +1,22 @@
 import {Server} from "http";
 import {Express, RequestHandler} from "express";
 import {Server as SocketIOServer, Socket } from "socket.io";
+import {Games} from "../db";
 
 let io: SocketIOServer | undefined;
 
-const bindSession = (socket: Socket) => {
+const bindSession = async (socket: Socket) => {
     const {request} = socket;
 
     // @ts-ignore
     socket.join(request.session.id);
+
+    // @ts-ignore
+    const userGames = await Games.getUserGameRooms(request.session.user.id);
+
+    userGames.forEach(({game_id}) => {
+        socket.join(`game-${game_id}`);
+    });
 
     socket.use((_, next) => {
         // @ts-ignore
@@ -29,7 +37,7 @@ export default function (server: Server, app: Express, sessionMiddleware: Reques
         app.set("io", io);
         io.engine.use(sessionMiddleware);
 
-        io.on("connection", (socket) => {
+        io.on("connection", async (socket) => {
             bindSession(socket);
 
             // @ts-ignore

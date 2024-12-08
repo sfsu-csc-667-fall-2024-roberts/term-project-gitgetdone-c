@@ -34,3 +34,7 @@ LEFT JOIN game_users gu ON g.id = gu.game_id
 WHERE g.id = $1
 GROUP BY g.id
 `;
+
+export const GET_USER_GAMES = `
+SELECT game_id FROM game_users WHERE user_id = $1
+`

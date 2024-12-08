@@ -5,6 +5,14 @@ import {Games} from "../db";
 
 const router = express.Router();
 
+router.post("/do-a-thing/:gameId", (request, response) => {
+    const {gameId} = request.params;
+
+    response.send(`Did a thing for game ${gameId}`);
+
+    request.app.get("io").to(`game-${gameId}`).emit("thing", {thing:"thing", ts:Date.now()});
+});
+
 router.post("/create", async (request, response) => {
     // @ts-ignore
     const {id: user_id} = request.session.user;

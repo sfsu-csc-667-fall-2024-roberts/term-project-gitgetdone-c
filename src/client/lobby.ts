@@ -19,7 +19,13 @@ window.socket.on("game-created", (game) => {
 
 window.socket.on("game-updated", (game) => {
     const row = document.querySelector(`#game-row-${game.id}`);
+
     if (row) {
-        row.querySelector("td:nth-child(2)")!.textContent = `${game.players} / ${game.player_count}`;
+        if (parseInt(game.players) === game.player_count) {
+            row.remove();
+        }
+        else {
+            row.querySelector("td:nth-child(2)")!.textContent = `${game.players} / ${game.player_count}`;
+        }
     }
 });

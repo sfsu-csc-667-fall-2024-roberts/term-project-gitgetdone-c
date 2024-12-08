@@ -1,5 +1,5 @@
 import db from "../connection";
-import {ADD_PLAYER, AVAILABLE_GAMES, CREATE_GAME, IS_USER_IN_GAME, GET_GAME_INFO } from "./sql";
+import {ADD_PLAYER, AVAILABLE_GAMES, CREATE_GAME, IS_USER_IN_GAME, GET_GAME_INFO, GET_USER_GAMES} from "./sql";
 
 type GameDescription = {
     id: number;
@@ -32,4 +32,7 @@ const getGameInfo = async (gameId: number) => {
     return db.one(GET_GAME_INFO, [gameId]);
 };
 
-export default { create, join, availableGames, isUserInGame, getGameInfo };
+const getUserGameRooms = async (userId: number) => {
+    return db.any(GET_USER_GAMES, [userId]);
+}
+export default { create, join, availableGames, isUserInGame, getGameInfo, getUserGameRooms};
