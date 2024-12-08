@@ -26,9 +26,9 @@ form.addEventListener('submit', (e) => {
 });
 
 // IIFE
-(() => {
+//(() => {
     window.socket.on(
-        "message:0",
+        `message:${window.roomId}`,
         (payload: {
             message: string;
             sender: string;
@@ -39,4 +39,4 @@ form.addEventListener('submit', (e) => {
 
             document.querySelector("#chat-section ul")!.appendChild(messageElement);
     })
-})();
+//})();
