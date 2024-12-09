@@ -1,70 +1,134 @@
 import express from "express";
 import checkAuthentication from "../middleware/check-authentication";
 import chatMiddleware from "../middleware/chat";
-import {Games} from "../db";
+import { Games } from "../db";
+import { UnoGame } from "../game/gameLogic";
 
 const router = express.Router();
 
+// Store active games in memory
+const activeGames: Record<number, UnoGame> = {};
+
+// Existing endpoint: Does a thing for a game
 router.post("/do-a-thing/:gameId", (request, response) => {
-    const {gameId} = request.params;
+    const { gameId } = request.params;
 
     response.send(`Did a thing for game ${gameId}`);
-
-    request.app.get("io").to(`game-${gameId}`).emit("thing", {thing:"thing", ts:Date.now()});
+    request.app.get("io").to(`game-${gameId}`).emit("thing", { thing: "thing", ts: Date.now() });
 });
 
-router.post("/create", async (request, response) => {
+// Create a new UNO game
+router.post("/create", checkAuthentication, async (request, response) => {
     // @ts-ignore
-    const {id: user_id} = request.session.user;
-    const game = await Games.create(user_id);
+    const { id: user_id } = request.session.user;
 
-    request.app.get("io").emit("game-created", game);
+    try {
+        // Create a new game in the database
+        const game = await Games.create(user_id);
 
-    response.redirect(`/games/${game.id}`);
+        // Initialize UNO game logic
+        const unoGame = new UnoGame(game.id, [user_id]);
+        activeGames[game.id] = unoGame;
+
+        request.app.get("io").emit("game-created", game);
+        response.redirect(`/games/${game.id}`);
+    } catch (error) {
+        console.error("Error creating game:", error);
+        response.redirect("/lobby?error=game-creation-failed");
+    }
 });
 
-router.post("/join/:gameId", async (request, response) => {
-    // @ts-expect-error TODO update session to include user id
-    const {id: user_id} = request.session.user;
-    const {gameId} = request.params;
+// Join an existing game
+router.post("/join/:gameId", checkAuthentication, async (request, response) => {
+    // @ts-ignore
+    const { id: user_id } = request.session.user;
+    const { gameId } = request.params;
     const game_id = parseInt(gameId, 10);
 
     try {
-        const userInGame = await Games.isUserInGame(user_id, game_id);
-        if (userInGame) {
-            return response.redirect(`/games/${gameId}`);
+        const gameExists = activeGames[game_id];
+        if (!gameExists) {
+            response.redirect("/lobby?error=game-not-found");
+            return;
         }
 
-        const gameInfo = await Games.getGameInfo(game_id);
+        // Check if user is already in the game
+        const userInGame = await Games.isUserInGame(user_id, game_id);
+        if (userInGame) {
+            response.redirect(`/games/${gameId}`);
+            return;
+        }
 
+        // Validate game capacity
+        const gameInfo = await Games.getGameInfo(game_id);
         if (!gameInfo) {
-            return response.redirect("/lobby?error=game-not-found");
+            response.redirect("/lobby?error=game-not-found");
+            return;
         }
 
         const players = parseInt(gameInfo.players, 10);
         const maxPlayers = parseInt(gameInfo.player_count, 10);
-
         if (players >= maxPlayers) {
-            return response.redirect("/lobby?error=game-full");
+            response.redirect("/lobby?error=game-full");
+            return;
         }
 
-        const game = await Games.join(user_id, game_id);
-        game.players = 1;
+        // Add player to the game
+        await Games.join(user_id, game_id);
+        gameExists.addPlayer(user_id);
 
-        request.app.get("io").emit("game-updated", game);
-
+        request.app.get("io").emit("game-updated", gameExists.getState());
         response.redirect(`/games/${gameId}`);
     } catch (error) {
         console.error("Error joining game:", error);
-        return response.redirect("/lobby?error=unknown-error");
-}
+        response.redirect("/lobby?error=unknown-error");
+    }
 });
 
-router.get("/:gameId", checkAuthentication, chatMiddleware, (request, response) => {
-    const{ gameId } = request.params;
-    const user = response.locals.user;
+// Play a card in the game
+router.post("/:gameId/play", checkAuthentication, (request, response) => {
+    const { gameId } = request.params;
+    const { cardIndex } = request.body;
+    // @ts-ignore
+    const { id: user_id } = request.session.user;
 
-    response.render("games", { title: `Game ${gameId}`, gameId, roomId: response.locals.roomId })
+    try {
+        const game = activeGames[parseInt(gameId, 10)];
+        if (!game) {
+            response.status(404).send({ error: "Game not found" });
+            return;
+        }
+
+        const success = game.playCard(user_id, cardIndex);
+        if (!success) {
+            response.status(400).send({ error: "Invalid move" });
+            return;
+        }
+
+        request.app.get("io").emit(`game-state:${gameId}`, game.getState());
+        response.status(200).send(game.getState());
+    } catch (error) {
+        console.error("Error playing card:", error);
+        response.status(500).send({ error: "Internal server error" });
+    }
+});
+
+// Fetch current game state
+router.get("/:gameId", checkAuthentication, chatMiddleware, (request, response) => {
+    const { gameId } = request.params;
+
+    try {
+        const game = activeGames[parseInt(gameId, 10)];
+        if (!game) {
+            response.status(404).send({ error: "Game not found" });
+            return;
+        }
+
+        response.status(200).send(game.getState());
+    } catch (error) {
+        console.error("Error fetching game state:", error);
+        response.status(500).send({ error: "Internal server error" });
+    }
 });
 
 export default router;
