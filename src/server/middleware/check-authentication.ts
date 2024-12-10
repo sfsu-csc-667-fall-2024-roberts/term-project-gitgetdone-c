@@ -10,7 +10,7 @@ export default (
     // @ts-expect-error TODO fix this error for session
     if (!request.session.user) {
         console.log("Invalid authentication");
-        return response.redirect("/auth/login");
+        return response.redirect("/auth/lobby");
     }
 
     response.locals = response.locals || {};

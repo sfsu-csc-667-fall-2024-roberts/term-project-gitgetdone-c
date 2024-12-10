@@ -1,58 +1,135 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-Games page for game <%= gameId %>
-
-<div>
-    <form id="blarg" action="/games/do-a-thing/<%= gameId %>" method="post">
-        <button class="bg-blue-200 rounded-sm px-1 border-[1px] border-blue-800">Do a thing</button>
-    </form>
-</div>
-
-<div class="grid grid-cols-4 gap-6 p-8">
-    <div class="col-span-3 grid grid-rows-5 gap-4">
-        <div style="display: flex; gap: 16px;">
-            <div class="flex justify-center items-center bg-gray-700 rounded p-4">
-                <p class="text-xl">Player 2</p>
-                <span class="text-sm text-gray-300" style="margin-left: 8px;">(3 cards)</span>
-            </div>
-            <div class="flex justify-center items-center bg-gray-700 rounded p-4">
-                <p class="text-xl">Player 3</p>
-                <span class="text-sm text-gray-300" style="margin-left: 8px;">(5 cards)</span>
-            </div>
-            <div class="flex justify-center items-center bg-gray-700 rounded p-4">
-                <p class="text-xl">Player 4</p>
-                <span class="text-sm text-gray-300" style="margin-left: 8px;">(2 cards)</span>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Navbar -->
+    <div class="flex justify-between items-center bg-gray-800 px-6 py-4">
+        <div class="flex items-center space-x-4">
+            <h1 class="text-2xl font-bold text-yellow-400"><%= user.username %></h1>
+            <div class="flex items-center space-x-2">
+                <p class="text-xl font-bold">Coin</p>
+                <button class="bg-gray-700 px-2 py-1 rounded text-green-400">+</button>
             </div>
         </div>
-
-        <div class="flex flex-col items-center bg-gray-800 rounded p-4">
-            <p class="mb-4 text-xl">Top Card</p>
-            <div id="top-card" class="bg-yellow-400 text-black font-bold rounded-lg w-20 h-28 flex items-center justify-center">
-            </div>
-            <button class="bg-blue-500 text-white px-6 py-2 mt-4 rounded">
-                Draw Card
+        <div class="flex space-x-4">
+            <button class="bg-blue-500 px-4 py-2 rounded">
+                <a href="/profile">Profile</a>
+            </button>
+            <button class="bg-red-500 px-4 py-2 rounded">
+                <a href="/auth/logout">Logout</a>
+            </button>
+            <button class="bg-gray-700 px-4 py-2 rounded">
+                <a href="/settings">⚙ Settings</a>
             </button>
         </div>
-        <div class="bg-gray-800 rounded p-4">
-            <p class="text-xl mb-4 text-center">Your Cards</p>
-            <div id="player-cards" class="flex flex-wrap gap-2 justify-center">
+    </div>
 
-
-            </div>
+    <!-- UNO Game Section -->
+    <div class="flex flex-col items-center mt-4">
+        <div class="flex w-full justify-between items-center px-8">
+            <h2 class="text-4xl font-bold text-green-400">UNO Game 2</h2>
+            <button id="quit-game-button" class="bg-red-500 px-4 py-2 rounded text-white">
+                Quit Game
+            </button>
         </div>
     </div>
-</div>
 
-<%- include('./partials/chat.ejs', { roomId: roomId }) %>
-<%- include('./partials/footer.ejs') %>
+    <!-- Main Content -->
+    <div class="grid grid-cols-4 gap-6 px-8 mt-6">
+        <!-- Game Details Section -->
+        <div class="col-span-3 bg-gray-800 rounded-lg p-6">
+            <h3 class="text-2xl font-bold text-gray-300 mb-4">Game Information</h3>
+            <div class="grid grid-cols-3 gap-4">
+                <!-- Player Info -->
+                <div class="bg-gray-700 p-4 rounded shadow">
+                    <p class="text-lg">Player 2</p>
+                    <span class="text-gray-300">(3 cards)</span>
+                </div>
+                <div class="bg-gray-700 p-4 rounded shadow">
+                    <p class="text-lg">Player 3</p>
+                    <span class="text-gray-300">(5 cards)</span>
+                </div>
+                <div class="bg-gray-700 p-4 rounded shadow">
+                    <p class="text-lg">Player 4</p>
+                    <span class="text-gray-300">(2 cards)</span>
+                </div>
+            </div>
 
-<script src="/js/games.js"></script>
+            <!-- Top Card and Draw Button -->
+            <div class="flex flex-col items-center mt-6">
+                <p class="mb-4 text-xl font-semibold">Top Card</p>
+                <div id="top-card" class="bg-yellow-400 text-black font-bold rounded-lg w-20 h-28 flex items-center justify-center shadow-lg mb-4">
+                    ?
+                </div>
+                <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded shadow">
+                    Draw Card
+                </button>
+            </div>
 
+            <!-- Player Cards -->
+            <div class="mt-6">
+                <p class="text-xl mb-4 text-center font-semibold">Your Cards</p>
+                <div id="player-cards" class="flex flex-wrap gap-2 justify-center">
+                    <!-- Example Card -->
+                    <!-- <div class="bg-yellow-400 text-black font-bold rounded-lg w-16 h-24 flex items-center justify-center shadow-md">5</div> -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="bg-gray-800 rounded-lg p-4 col-span-1">
+            <h3 class="text-xl font-bold text-gray-300 mb-4">Chat</h3>
+            <div id="chat-messages" class="bg-gray-900 p-4 rounded-lg h-64 overflow-y-scroll mb-4">
+                <!-- Messages will dynamically appear here -->
+            </div>
+            <form id="chat-form">
+                <input
+                    type="text"
+                    id="chat-input"
+                    placeholder="Type your message..."
+                    class="w-full px-4 py-2 mb-2 bg-gray-700 rounded text-white"
+                />
+                <button type="submit" class="bg-blue-500 px-4 py-2 rounded text-white w-full">Send Message</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Handle Quit Game functionality
+        document.getElementById("quit-game-button").addEventListener("click", function () {
+            const confirmation = confirm("Are you sure you want to quit the game?");
+            if (confirmation) {
+                window.location.href = "/lobby"; // Redirect to the Lobby page
+            }
+        });
+
+        // Chat functionality
+        const socket = io();
+        socket.on("chatMessage", (message) => {
+            const chatMessages = document.getElementById("chat-messages");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("mb-2");
+            messageDiv.innerHTML = `<span class="text-yellow-400">${message.username}:</span> <span class="text-gray-300">${message.text}</span>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+
+        const chatForm = document.getElementById("chat-form");
+        chatForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const chatInput = document.getElementById("chat-input");
+            const message = chatInput.value.trim();
+            if (message) {
+                socket.emit("sendMessage", { roomId: "<%= roomId %>", text: message });
+                chatInput.value = "";
+            }
+        });
+    </script>
 </body>
 </html>

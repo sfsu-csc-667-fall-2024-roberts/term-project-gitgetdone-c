@@ -7,63 +7,133 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen">
-<!-- Navbar -->
-<div class="flex justify-between items-center bg-gray-800 px-6 py-4">
-    <h1 class="text-2xl font-bold text-yellow-400"><%= user.username %></h1>
-    <div class="flex space-x-4">
-        <button class="bg-red-500 px-4 py-2 rounded"><a href="/auth/logout">Logout</a></button>
+    <!-- Navbar -->
+    <div class="flex justify-between items-center bg-gray-800 px-6 py-4">
+        <div class="flex items-center space-x-4">
+            <h1 class="text-2xl font-bold text-yellow-400"><%= user.username %></h1>
+            <div class="flex items-center space-x-2">
+                <p class="text-xl font-bold">Coin</p>
+                <button class="bg-gray-700 px-2 py-1 rounded text-green-400">+</button>
+            </div>
+        </div>
+        <div class="flex space-x-4">
+            <button class="bg-blue-500 px-4 py-2 rounded">
+                <a href="/profile">Profile</a>
+            </button>
+            <button class="bg-red-500 px-4 py-2 rounded">
+                <a href="/auth/logout">Logout</a>
+            </button>
+            <button class="bg-gray-700 px-4 py-2 rounded">
+                <a href="/settings">⚙ Settings</a>
+            </button>
+        </div>
     </div>
-</div>
-<!-- Welcome Section -->
-<div class="p-8 text-center">
-    <h2 class="text-3xl font-bold text-green-400 mb-4">
-        UNO
-    </h2>
-</div>
-<!-- Split Layout -->
-<div class="grid grid-cols-3 gap-6 px-8">
-    <!-- Left Section -->
-    <div class="col-span-2">
-        <div class="flex space-x-4 mb-8">
-            <form method="post" action="/games/create">
-                <button class="bg-gray-700 px-6 py-3 rounded w-1/4">New Game</button>
-            </form>
+
+    <!-- Welcome Section -->
+    <div class="p-8 text-center">
+        <h2 class="text-4xl font-bold text-green-400 mb-4">Welcome to UNO Game</h2>
+        <p class="text-lg text-gray-300 mb-4">
+            Please select your game or start a new game with your team member.
+        </p>
+        <p class="text-lg text-pink-400 cursor-pointer hover:underline">Invite Your Friend</p>
+    </div>
+
+    <!-- Split Layout -->
+    <div class="grid grid-cols-3 gap-6 px-8">
+        <!-- Game Room Section -->
+        <div class="col-span-2">
+            <h3 class="text-2xl font-bold text-gray-300 mb-4">Open Games</h3>
+            <div class="grid grid-cols-3 gap-4" id="game-rooms">
+                <% availableGames.slice(0, 3).forEach((room) => { %>
+                    <div class="bg-gray-800 rounded-lg p-4 text-center" data-room-id="<%= room.id %>">
+                        <img src="/images/cards-placeholder.png" alt="Cards" class="mb-4 w-full rounded-md" />
+                        <p class="font-bold mb-2">Game <%= room.id %></p>
+                        <p class="text-sm text-gray-300 mb-4">
+                            (<%= room.players %> / <%= room.player_count %>)
+                        </p>
+                        <form action="/games/join/<%= room.id %>" method="post" class="join-form">
+                            <button class="bg-blue-500 px-4 py-2 rounded text-white">Join</button>
+                        </form>
+                    </div>
+                <% }); %>
+            </div>
+            <div class="mt-6 text-center">
+                <form id="new-game-form">
+                    <button class="bg-green-500 px-6 py-3 rounded text-white">New Game</button>
+                </form>
+            </div>
         </div>
 
-        <table class="w-full">
-        <tbody id="available-games-list">
-        <% locals.availableGames !== undefined && availableGames.forEach((room) => { %>
-            <tr id="game-row-<%= room.id %>">
-                <td class="border-b-[1px] border-gray-400 py-[4px]">Game <%= room.id %></td>
-                <td class="border-b-[1px] border-gray-400 py-[4px]">(<%= room.players%> / <%= room.player_count %>)</td>
-                <td class="text-center border-b-[1px] border-gray-400 py-[4px]">
-                    <form action="/games/join/<%= room.id %>" method="post">
-                        <button class="bg-blue-200 rounded-sm px-1 border-[1px] border-blue-800">Join</button>
-                    </form>
-                </td>
-            </tr>
-        <% }); %>
-        </tbody>
-        </table>
-
+        <!-- Chat Section -->
+        <div class="bg-gray-800 rounded-lg p-4">
+            <h3 class="text-xl font-bold text-gray-300 mb-4">Chat</h3>
+            <div id="chat-messages" class="bg-gray-900 p-4 rounded-lg h-64 overflow-y-scroll mb-4">
+                <!-- Messages will dynamically appear here -->
+            </div>
+            <form id="chat-form">
+                <input
+                    type="text"
+                    id="chat-input"
+                    placeholder="Type your message..."
+                    class="w-full px-4 py-2 mb-2 bg-gray-700 rounded text-white"
+                />
+                <button type="submit" class="bg-blue-500 px-4 py-2 rounded text-white w-full">Send Message</button>
+            </form>
+        </div>
     </div>
 
-    <template id="game-row-template">
-        <tr>
-            <td class="border-b-[1px] border-gray-400 py-[4px]"></td>
-            <td class="border-b-[1px] border-gray-400 py-[4px]"></td>
-            <td class="text-center border-b-[1px] border-gray-400 py-[4px]">
-                <form action="/join/X" method="post">
-                    <button class="bg-blue-200 rounded-sm px-1 border-[1px] border-blue-800">Join</button>
-                </form>
-            </td>
-        </tr>
-    </template>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
 
-    <%- include('./partials/chat.ejs', { roomId: roomId }) %>
-    <%- include('./partials/footer.ejs') %>
-</div>
+        // Ensure only three game rooms are displayed
+        const manageGameRooms = () => {
+            const gameRooms = document.querySelectorAll("#game-rooms > div");
+            if (gameRooms.length > 3) {
+                gameRooms[gameRooms.length - 1].remove(); // Remove the oldest game
+            }
+        };
 
-<script src="/js/lobby.js"></script>
+        // Handle "New Game" button
+        const newGameForm = document.getElementById("new-game-form");
+        newGameForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            try {
+                const response = await fetch("/games/create", { method: "POST" });
+                if (!response.ok) {
+                    throw new Error("Failed to create a new game");
+                }
+                const data = await response.json();
+                const gameId = data.gameId;
+
+                // Redirect to the new game room
+                window.location.href = `/games/${gameId}`;
+            } catch (error) {
+                console.error("Error creating a new game:", error.message);
+            }
+        });
+
+        // Chat functionality
+        const chatForm = document.getElementById("chat-form");
+        chatForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const chatInput = document.getElementById("chat-input");
+            const message = chatInput.value.trim();
+
+            if (message) {
+                socket.emit("sendMessage", { roomId: "lobby", text: message });
+                chatInput.value = "";
+            }
+        });
+
+        socket.on("chatMessage", (message) => {
+            const chatMessages = document.getElementById("chat-messages");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("mb-2");
+            messageDiv.innerHTML = `<span class="text-yellow-400">${message.username}:</span> <span class="text-gray-300">${message.text}</span>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+    </script>
 </body>
 </html>

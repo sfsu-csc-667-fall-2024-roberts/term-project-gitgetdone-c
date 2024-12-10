@@ -1,86 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Register to Play UNO</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .registration-container {
-            background: white;
-            padding: 20px 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        .registration-container h1 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: #555;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .register-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .register-button:hover {
-            background-color: #45a049;
-        }
-        .info-text {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #777;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<div class="registration-container">
-    <h1>Register to Play UNO</h1>
-    <form action="/auth/register" method="POST">
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" placeholder="Enter your username" required>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-sm bg-gray-800 rounded-lg shadow-md p-6">
+        <h1 class="text-3xl font-bold text-green-400 text-center mb-6">Register to Play UNO</h1>
+        <form id="register-form" class="space-y-4">
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-300">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username"
+                    required
+                    class="w-full px-4 py-2 bg-gray-700 text-gray-100 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                />
+            </div>
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-300">Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    required
+                    class="w-full px-4 py-2 bg-gray-700 text-gray-100 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                />
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    required
+                    class="w-full px-4 py-2 bg-gray-700 text-gray-100 border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                />
+            </div>
+            <button
+                type="submit"
+                class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+            >
+                Register
+            </button>
+        </form>
+        <p class="text-center text-sm text-gray-300 mt-4">
+            Already have an account? <a href="/auth/login" class="text-green-400 hover:underline">Login here</a>.
+        </p>
+    </div>
+
+    <!-- Popup Message -->
+    <div
+        id="success-popup"
+        class="hidden fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75"
+    >
+        <div class="bg-gray-800 rounded-lg p-6 text-center max-w-sm">
+            <h2 class="text-xl font-bold text-green-400 mb-4">Success!</h2>
+            <p class="text-gray-300 mb-6">You have successfully signed up. Please login now.</p>
+            <button
+                id="popup-close-button"
+                class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+            >
+                Go to Login
+            </button>
         </div>
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="Enter your email" required>
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Enter your password" required>
-        </div>
-        <button type="submit" class="register-button">Register</button>
-    </form>
-    <p class="info-text">Already have an account? <a href="/auth/login">Login here</a>.</p>
-</div>
+    </div>
+
+    <script>
+        // Handle registration form submission
+        const registerForm = document.getElementById("register-form");
+        const successPopup = document.getElementById("success-popup");
+        const popupCloseButton = document.getElementById("popup-close-button");
+
+        registerForm.addEventListener("submit", async (event) => {
+            event.preventDefault(); // Prevent default form submission
+
+            const formData = new FormData(registerForm);
+            const payload = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch("/auth/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (response.ok) {
+                    // Show the success popup
+                    successPopup.classList.remove("hidden");
+                } else {
+                    const errorData = await response.json();
+                    alert(errorData.message || "Registration failed. Please try again.");
+                }
+            } catch (error) {
+                console.error("Error during registration:", error);
+                alert("An error occurred. Please try again later.");
+            }
+        });
+
+        // Close popup and navigate to login page
+        popupCloseButton.addEventListener("click", () => {
+            window.location.href = "/auth/login";
+        });
+    </script>
 </body>
 </html>
