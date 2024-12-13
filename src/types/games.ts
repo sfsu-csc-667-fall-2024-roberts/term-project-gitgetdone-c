@@ -5,6 +5,7 @@ export type Card = {
 
 export type Player = {
     id: number;
+    username: string;
     hand: Card[];
 };
 

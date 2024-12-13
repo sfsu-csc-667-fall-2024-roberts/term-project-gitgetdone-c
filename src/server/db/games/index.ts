@@ -8,9 +8,9 @@ import {
     GET_USER_GAMES,
     FETCH_GAME_STATE,
     UPDATE_GAME_STATE,
-    SET_GAME_FINISHED
+    SET_GAME_FINISHED, GET_USERNAME
 } from "./sql";
-import {GameState} from "../../../types/games";
+import {GameState, Player} from "../../../types/games";
 
 type GameDescription = {
     id: number;
@@ -21,10 +21,12 @@ type GameDescription = {
 const create = async (playerId: number): Promise<GameDescription> => {
     const game = await db.one<GameDescription>(CREATE_GAME);
 
+    const playerUsername = await db.one(GET_USERNAME, [playerId]).then(result => result.username);
+
     await db.one(ADD_PLAYER, [game.id, playerId]);
 
     const deck = shuffleDeck();
-    const initialPlayer = { id: playerId, hand: deck.splice(0, 7) };
+    const initialPlayer = { id: playerId, username: playerUsername, hand: deck.splice(0, 7) };
 
     const state: GameState = {
         deck,
@@ -66,9 +68,9 @@ const shuffleDeck = (): Array<{ color: string | null; value: string }> => {
 const join = async (playerId: number, gameId: number): Promise<GameDescription> => {
     //return await db.one<GameDescription>(ADD_PLAYER, [gameId, playerId]);
     const game = await db.one<GameDescription>(ADD_PLAYER, [gameId, playerId]);
-
+    const playerUsername = await db.one(GET_USERNAME, [playerId]).then(result => result.username);
     const state = await getGameState(gameId);
-    const newPlayer = { id: playerId, hand: state.deck.splice(0, 7) };
+    const newPlayer = { id: playerId, username: playerUsername, hand: state.deck.splice(0, 7) };
     state.players.push(newPlayer);
 
     await updateGameState(gameId, state);
@@ -93,8 +95,19 @@ const getUserGameRooms = async (userId: number) => {
 }
 
 const getGameState = async (gameId: number): Promise<GameState> => {
-    const { state } = await db.one(FETCH_GAME_STATE, [gameId]);
-    return state as GameState;
+    const rows = await db.any(FETCH_GAME_STATE, [gameId]);
+    const { state } = rows[0];
+
+    const players = rows.map(row => ({
+        id: row.id,
+        username: row.username,
+        hand: state.players.find((player: Player) => player.id === row.id)?.hand || [],
+    }));
+
+    return {
+        ...state,
+        players,
+    } as GameState;
 };
 
 const updateGameState = async (gameId: number, state: object): Promise<object> => {
