@@ -1,7 +1,10 @@
 export const CREATE_GAME = `
-INSERT INTO games (status)
-VALUES ('pending')
-RETURNING *, 1 as players
+    INSERT INTO games (status, state)
+    VALUES (
+               'pending',
+               '{"players": [], "deck": [], "discardPile": [], "currentTurn": 0, "direction": 1}'::jsonb
+           )
+    RETURNING *;
 `;
 
 export const ADD_PLAYER = `
@@ -38,3 +41,22 @@ GROUP BY g.id
 export const GET_USER_GAMES = `
 SELECT game_id FROM game_users WHERE user_id = $1
 `
+
+export const UPDATE_GAME_STATE = `
+UPDATE games
+SET state = $2
+WHERE id = $1
+RETURNING state;
+`;
+
+export const FETCH_GAME_STATE = `
+SELECT state
+FROM games
+WHERE id = $1;
+`;
+
+export const SET_GAME_FINISHED = `
+UPDATE games
+SET status = 'finished'
+WHERE id = $1;
+`;

@@ -1,5 +1,16 @@
 import db from "../connection";
-import {ADD_PLAYER, AVAILABLE_GAMES, CREATE_GAME, IS_USER_IN_GAME, GET_GAME_INFO, GET_USER_GAMES} from "./sql";
+import {
+    ADD_PLAYER,
+    AVAILABLE_GAMES,
+    CREATE_GAME,
+    IS_USER_IN_GAME,
+    GET_GAME_INFO,
+    GET_USER_GAMES,
+    FETCH_GAME_STATE,
+    UPDATE_GAME_STATE,
+    SET_GAME_FINISHED
+} from "./sql";
+import {GameState} from "../../../types/games";
 
 type GameDescription = {
     id: number;
@@ -12,11 +23,56 @@ const create = async (playerId: number): Promise<GameDescription> => {
 
     await db.one(ADD_PLAYER, [game.id, playerId]);
 
+    const deck = shuffleDeck();
+    const initialPlayer = { id: playerId, hand: deck.splice(0, 7) };
+
+    const state: GameState = {
+        deck,
+        discardPile: [deck.pop()!],
+        players: [initialPlayer],
+        currentTurn: 0,
+        direction: 1,
+    };
+
+
+    await updateGameState(game.id, state);
+
     return game;
 };
 
+const shuffleDeck = (): Array<{ color: string | null; value: string }> => {
+    const colors = ["red", "yellow", "green", "blue"];
+    const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "skip", "reverse", "draw2"];
+    const specials = ["wild", "wild_draw4"];
+
+    let deck: { color: any; value: any; }[] = [];
+
+    colors.forEach((color) => {
+        values.forEach((value) => {
+            deck.push({ color, value });
+            if (value !== "0") deck.push({ color, value });
+        });
+    });
+
+    specials.forEach((value) => {
+        for (let i = 0; i < 4; i++) {
+            deck.push({ color: null, value });
+        }
+    });
+
+    return deck.sort(() => Math.random() - 0.5);
+};
+
 const join = async (playerId: number, gameId: number): Promise<GameDescription> => {
-    return await db.one<GameDescription>(ADD_PLAYER, [gameId, playerId]);
+    //return await db.one<GameDescription>(ADD_PLAYER, [gameId, playerId]);
+    const game = await db.one<GameDescription>(ADD_PLAYER, [gameId, playerId]);
+
+    const state = await getGameState(gameId);
+    const newPlayer = { id: playerId, hand: state.deck.splice(0, 7) };
+    state.players.push(newPlayer);
+
+    await updateGameState(gameId, state);
+    return game;
 }
 
 const availableGames = async (limit: number = 20, offset: number = 0) => {
@@ -35,4 +91,29 @@ const getGameInfo = async (gameId: number) => {
 const getUserGameRooms = async (userId: number) => {
     return db.any(GET_USER_GAMES, [userId]);
 }
-export default { create, join, availableGames, isUserInGame, getGameInfo, getUserGameRooms};
+
+const getGameState = async (gameId: number): Promise<GameState> => {
+    const { state } = await db.one(FETCH_GAME_STATE, [gameId]);
+    return state as GameState;
+};
+
+const updateGameState = async (gameId: number, state: object): Promise<object> => {
+    const { state: updatedState } = await db.one(UPDATE_GAME_STATE, [gameId, state]);
+    return updatedState;
+};
+
+const finishGame = async (gameId: number): Promise<void> => {
+    await db.none(SET_GAME_FINISHED, [gameId]);
+};
+
+export default {
+    create,
+    join,
+    availableGames,
+    isUserInGame,
+    getGameInfo,
+    getUserGameRooms,
+    getGameState,
+    updateGameState,
+    finishGame
+};

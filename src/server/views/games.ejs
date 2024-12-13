@@ -4,6 +4,220 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title><%= title %></title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+        .card {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .red { background-color: #ffcccc; color: #990000; }
+        .yellow { background-color: #ffffcc; color: #999900; }
+        .green { background-color: #ccffcc; color: #009900; }
+        .blue { background-color: #ccccff; color: #000099; }
+        .wild { background-color: #ddd; color: #000; }
+    </style>
+</head>
+<body>
+<h1>Uno Game</h1>
+<p>Game ID: <%= gameId %></p>
+
+<script>
+const gameId = <%- JSON.stringify(gameId) %>;
+console.log("gameId: ", gameId);
+const currentPlayerId = <%- JSON.stringify(currentPlayerId) %>;
+console.log("currentPlayerId: ", currentPlayerId);
+</script>
+
+<div>
+    <h2>Other Players</h2>
+    <div style="display: flex; justify-content: center; gap: 16px;">
+        <% for (let i = 0; i < gameState.players.length; i++) { %>
+            <% if (gameState.players[i].id !== currentPlayerId) { %>
+                <div>
+                    <p>
+                        Player <%= gameState.players[i].id %>
+                        (<%= gameState.players[i].hand.length %> cards)
+                    </p>
+                </div>
+            <% } %>
+        <% } %>
+    </div>
+</div>
+
+<!-- top card -->
+<div style="margin: 24px 0;">
+    <h2>Top Card</h2>
+    <% if (gameState.discardPile.length > 0) { %>
+        <% const topCard = gameState.discardPile[gameState.discardPile.length - 1]; %>
+        <div id="top-card" class="card <%= topCard.color %>">
+            <%= topCard.color %> <%= topCard.value %>
+        </div>
+    <% } else { %>
+        <div id="top-card" class="card">No Cards</div>
+    <% } %>
+    <br/>
+    <button id="draw-card-btn" class="card wild">Draw Card</button>
+</div>
+
+<!-- current hand -->
+<div>
+    <h2>Your Cards</h2>
+    <div id="player-cards">
+        <% const currentPlayer = gameState.players.find(player => player.id === currentPlayerId); %>
+        <% if (currentPlayer) { %>
+            <% currentPlayer.hand.forEach(card => { %>
+                <div class="card <%= card.color %>" data-color="<%= card.color %>" data-value="<%= card.value %>">
+                    <%= card.color %> <%= card.value %>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <p>No cards available</p>
+        <% } %>
+    </div>
+</div>
+
+<%- include('./partials/chat.ejs', { roomId: roomId }) %>
+<%- include('./partials/footer.ejs') %>
+
+<script>
+    document.getElementById("player-cards").addEventListener("click", (e) => {
+        const cardElement = e.target.closest(".card");
+        if (cardElement) {
+            const color = cardElement.dataset.color;
+            const value = cardElement.dataset.value;
+
+            fetch(`/games/${gameId}/play-card`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ playerId: currentPlayerId, card: { color, value } })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("Card played successfully!");
+                    } else {
+                        alert(data.message || "Failed to play card.");
+                    }
+                });
+        }
+    });
+
+    document.getElementById("draw-card-btn").addEventListener("click", () => {
+        fetch(`/games/${gameId}/draw-card`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ playerId: currentPlayerId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Card drawn successfully!");
+                } else {
+                    alert(data.message || "Failed to draw card.");
+                }
+            });
+    });
+</script>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    socket.emit("join-game", gameId);
+
+    socket.on("game-state", (updatedState) => {
+        console.log("Received updated game state:", updatedState);
+        updatePlayerCards(updatedState);
+        updateOtherPlayers(updatedState);
+        updateTopCard(updatedState);
+    });
+
+    function updatePlayerCards(gameState) {
+        const currentPlayer = gameState.players.find(player => player.id === currentPlayerId);
+        const playerCardsContainer = document.getElementById("player-cards");
+
+        playerCardsContainer.innerHTML = "";
+
+        if (currentPlayer) {
+            currentPlayer.hand.forEach(card => {
+                const cardElement = document.createElement("div");
+                cardElement.className = `card ${card.color}`;
+                cardElement.dataset.color = card.color;
+                cardElement.dataset.value = card.value;
+                cardElement.textContent = `${card.color} ${card.value}`;
+                playerCardsContainer.appendChild(cardElement);
+            });
+        }
+    }
+
+    function updateOtherPlayers(gameState) {
+        const otherPlayersContainer = document.querySelector("div > h2 + div");
+        otherPlayersContainer.innerHTML = "";
+
+        gameState.players.forEach(player => {
+            if (player.id !== currentPlayerId) {
+                const playerElement = document.createElement("div");
+                playerElement.innerHTML = `
+                    <p>Player ${player.id} (${player.hand.length} cards)</p>
+                `;
+                otherPlayersContainer.appendChild(playerElement);
+            }
+        });
+    }
+
+    function updateTopCard(gameState) {
+        const topCardContainer = document.getElementById("top-card");
+        if (gameState.discardPile.length > 0) {
+            const topCard = gameState.discardPile[gameState.discardPile.length - 1];
+            topCardContainer.className = `card ${topCard.color}`;
+            topCardContainer.textContent = `${topCard.color} ${topCard.value}`;
+        } else {
+            topCardContainer.className = "card";
+            topCardContainer.textContent = "No Cards";
+        }
+    }
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title><%= title %></title>
 </head>
 <body>
 Games page for game <%= gameId %>
@@ -56,3 +270,5 @@ Games page for game <%= gameId %>
 
 </body>
 </html>
+
+-->
