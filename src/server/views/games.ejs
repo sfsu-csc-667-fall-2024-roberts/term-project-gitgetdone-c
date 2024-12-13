@@ -98,9 +98,41 @@ console.log("currentPlayerId: ", currentPlayerId);
             const color = cardElement.dataset.color;
             const value = cardElement.dataset.value;
 
+
+            if (value === "wild" || value === "wild_draw4") {
+                const chosenColor = prompt("Choose a color (red, yellow, green, blue):");
+                if (!["red", "yellow", "green", "blue"].includes(chosenColor)) {
+                    alert("Invalid color. Please try again.");
+                    return;
+                }
+
+                fetch(`/games/${gameId}/play-card`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ playerId: currentPlayerId, card: { color: chosenColor, value } })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error("Invalid card play:", data.message);
+                            alert(data.message || "Invalid card play.");
+                        } else {
+                            console.log("Card played successfully.");
+                            cardElement.remove();
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error playing card:", error);
+                        alert("An error occurred while playing the card.");
+                    });
+                return;
+            }
+
+
             console.log("Attempting to play card:", { color, value });
             cardElement.style.opacity = "0.0";
             cardElement.style.pointerEvents = "none";
+            console.log("Fetching play-card");
 
             fetch(`/games/${gameId}/play-card`, {
                 method: "POST",
@@ -190,10 +222,13 @@ console.log("currentPlayerId: ", currentPlayerId);
         if (currentPlayer) {
             currentPlayer.hand.forEach(card => {
                 const cardElement = document.createElement("div");
-                cardElement.className = `card ${card.color}`;
-                cardElement.dataset.color = card.color;
+                const cardText = card.value.includes("wild")
+                    ? `Wild ${card.value === "wild_draw4" ? "Draw 4" : ""}`
+                    : `${card.color} ${card.value}`;
+                cardElement.className = `card ${card.color || "wild"}`;
+                cardElement.dataset.color = card.color || "null"; // Default to "null" for wild cards
                 cardElement.dataset.value = card.value;
-                cardElement.textContent = `${card.color} ${card.value}`;
+                cardElement.textContent = cardText;
                 playerCardsContainer.appendChild(cardElement);
             });
         }
@@ -218,8 +253,11 @@ console.log("currentPlayerId: ", currentPlayerId);
         const topCardContainer = document.getElementById("top-card");
         if (gameState.discardPile.length > 0) {
             const topCard = gameState.discardPile[gameState.discardPile.length - 1];
-            topCardContainer.className = `card ${topCard.color}`;
-            topCardContainer.textContent = `${topCard.color} ${topCard.value}`;
+            const cardText = topCard.value.includes("wild")
+                ? `Wild ${topCard.value === "wild_draw4" ? "Draw 4" : ""}`
+                : `${topCard.color} ${topCard.value}`;
+            topCardContainer.className = `card ${topCard.color || "wild"}`;
+            topCardContainer.textContent = cardText;
         } else {
             topCardContainer.className = "card";
             topCardContainer.textContent = "No Cards";
