@@ -207,9 +207,14 @@ router.post(
 
             state.discardPile.push(card);
 
-            //console.log("Before card removal:", currentPlayer.hand);
-            currentPlayer.hand = currentPlayer.hand.filter(c => !(c.color === card.color && c.value === card.value));
-            //console.log("After card removal:", currentPlayer.hand);
+            console.log("Before card removal:", currentPlayer.hand);
+            currentPlayer.hand = currentPlayer.hand.filter(c => {
+                if (c.value === "wild" || c.value === "wild_draw4") {
+                    return c.value !== card.value || (c.color !== null && c.color !== "null");
+                }
+                return c.color !== card.color || c.value !== card.value;
+            });
+            console.log("After card removal:", currentPlayer.hand);
 
             if (currentPlayer.hand.length === 0) {
                 req.app.get("io").to(`game-${gameId}`).emit("game-over", { winnerId: playerId });

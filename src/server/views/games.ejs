@@ -225,12 +225,18 @@ console.log("currentPlayerId: ", currentPlayerId);
                 const cardText = card.value.includes("wild")
                     ? `Wild ${card.value === "wild_draw4" ? "Draw 4" : ""}`
                     : `${card.color} ${card.value}`;
+
                 cardElement.className = `card ${card.color || "wild"}`;
-                cardElement.dataset.color = card.color || "null"; // Default to "null" for wild cards
+                cardElement.dataset.color = card.color || "null";
                 cardElement.dataset.value = card.value;
+
                 cardElement.textContent = cardText;
+
                 playerCardsContainer.appendChild(cardElement);
             });
+        }
+        else {
+            playerCardsContainer.innerHTML = "<p>No cards available</p>";
         }
     }
 
