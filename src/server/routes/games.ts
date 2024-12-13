@@ -1,23 +1,14 @@
-import express from "express";
 import checkAuthentication from "../middleware/check-authentication";
 import chatMiddleware from "../middleware/chat";
 import {Games} from "../db";
 import { Request, Response, Router } from "express";
 import {Card} from "../../types/games";
-import { validateCardPlay } from "../../utils/uno";
-import {advanceTurn, checkWinCondition} from "../../utils/gameFlow";
+import { validateCardPlay } from "../../utils/cardValidation";
+import {advanceTurn} from "../../utils/gameFlow";
 const router = Router();
 
-router.post("/do-a-thing/:gameId", (request, response) => {
-    const {gameId} = request.params;
-
-    response.send(`Did a thing for game ${gameId}`);
-
-    request.app.get("io").to(`game-${gameId}`).emit("thing", {thing:"thing", ts:Date.now()});
-});
-
 router.post("/create", async (request, response) => {
-    // @ts-ignore
+    // @ts-ignore TODO update session to include user id
     const {id: user_id} = request.session.user;
     const game = await Games.create(user_id);
 
@@ -39,22 +30,22 @@ router.post("/join/:gameId", async (request, response) => {
         }
 
         const gameInfo = await Games.getGameInfo(game_id);
-
         if (!gameInfo) {
             return response.redirect("/lobby?error=game-not-found");
         }
 
         const players = parseInt(gameInfo.players, 10);
         const maxPlayers = parseInt(gameInfo.player_count, 10);
-
         if (players >= maxPlayers) {
             return response.redirect("/lobby?error=game-full");
         }
 
-        const game = await Games.join(user_id, game_id);
-        game.players = 1;
+        console.log("Joining game...");
+        await Games.join(user_id, game_id);
 
-        request.app.get("io").emit("game-updated", game);
+        const updatedState = await Games.getGameState(game_id);
+
+        request.app.get("io").to(`game-${game_id}`).emit("game-state", updatedState);
 
         response.redirect(`/games/${gameId}`);
     } catch (error) {
@@ -69,7 +60,6 @@ router.get("/:gameId", checkAuthentication, chatMiddleware, async (request, resp
 
     try {
         const state = await Games.getGameState(parseInt(gameId, 10));
-        //console.log("Fetched Game State:", state);
 
         if (!state) {
             return response.redirect("/lobby?error=game-not-found");
@@ -106,7 +96,6 @@ router.get("/:gameId/state", async (request: Request<{ gameId: string }>, _: Res
         }
     }
 );
-
 
 router.put("/:gameId/state", async (request, response) => {
     const { gameId } = request.params;
@@ -224,17 +213,18 @@ router.post(
             }
 
             advanceTurn(state);
+
             const updatedState = await Games.updateGameState(parseInt(gameId, 10), state);
-           //console.log("Updated game state:", updatedState);
 
-           // request.app.get("io").to(`game-${gameId}`).emit("turn-updated", {
-            //    currentTurn: state.currentTurn,
-            //    playerId: state.players[state.currentTurn].id,
-           // });
-
+            req.app.get("io").to(`game-${gameId}`).emit("turn-updated", {
+                currentTurn: state.currentTurn,
+                playerId: state.players[state.currentTurn].id,
+                currentPlayerUsername: state.players[state.currentTurn].username,
+            });
             req.app.get("io").to(`game-${gameId}`).emit("game-state", updatedState);
-            req.app.get("io").to(`game-${gameId}`).emit("game-action", { type: "card-played", card, playerId });
+
             console.log("Card played successfully:", card);
+
             res.status(200).json({ success: true, card });
         } catch (error) {
             console.error("Error playing card:", error);
@@ -288,6 +278,7 @@ router.post(
             req.app.get("io").to(`game-${gameId}`).emit("turn-updated", {
                 currentTurn: state.currentTurn,
                 playerId: state.players[state.currentTurn].id,
+                currentPlayerUsername: state.players[state.currentTurn].username,
             });
 
             req.app.get("io").to(`game-${gameId}`).emit("game-state", updatedState);

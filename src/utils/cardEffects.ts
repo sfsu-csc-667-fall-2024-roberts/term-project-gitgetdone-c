@@ -1,16 +1,6 @@
-import {Card, GameState} from "../types/games";
+import { GameState, Card } from "../types/games";
 
-export const validateCardPlay = (state: GameState, card: Card): boolean => {
-    const topCard = state.discardPile[state.discardPile.length - 1];
-
-    if (topCard.color === card.color || topCard.value === card.value) {
-        return true;
-    }
-
-    if (card.value === "wild" || card.value === "wild_draw4") {
-        return true;
-    }
-
+export const applyCardEffects = (state: GameState, card: Card): void => {
     if (card.value === "skip") {
         state.currentTurn = (state.currentTurn + state.direction + state.players.length) % state.players.length;
     }
@@ -36,14 +26,4 @@ export const validateCardPlay = (state: GameState, card: Card): boolean => {
     } else {
         state.chosenColor = null;
     }
-
-    if (state.chosenColor) {
-        if (card.color === state.chosenColor || card.value === "wild" || card.value === "wild_draw4") {
-            state.chosenColor = null;
-            return true;
-        }
-        return false;
-    }
-
-    return false;
 };

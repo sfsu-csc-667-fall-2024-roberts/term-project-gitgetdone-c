@@ -20,7 +20,6 @@ type GameDescription = {
 
 const create = async (playerId: number): Promise<GameDescription> => {
     const game = await db.one<GameDescription>(CREATE_GAME);
-
     const playerUsername = await db.one(GET_USERNAME, [playerId]).then(result => result.username);
 
     await db.one(ADD_PLAYER, [game.id, playerId]);
@@ -28,14 +27,21 @@ const create = async (playerId: number): Promise<GameDescription> => {
     const deck = shuffleDeck();
     const initialPlayer = { id: playerId, username: playerUsername, hand: deck.splice(0, 7) };
 
+    let firstCardIndex = deck.findIndex(card => card.value !== "wild" && card.value !== "wild_draw4");
+
+    if (firstCardIndex === -1) {
+        throw new Error("Deck does not have any non-wild cards.");
+    }
+
+    const discardPile = [deck.splice(firstCardIndex, 1)[0]];
+
     const state: GameState = {
         deck,
-        discardPile: [deck.pop()!],
+        discardPile,
         players: [initialPlayer],
         currentTurn: 0,
         direction: 1,
     };
-
 
     await updateGameState(game.id, state);
 
@@ -66,14 +72,20 @@ const shuffleDeck = (): Array<{ color: string | null; value: string }> => {
 };
 
 const join = async (playerId: number, gameId: number): Promise<GameDescription> => {
-    //return await db.one<GameDescription>(ADD_PLAYER, [gameId, playerId]);
     const game = await db.one<GameDescription>(ADD_PLAYER, [gameId, playerId]);
     const playerUsername = await db.one(GET_USERNAME, [playerId]).then(result => result.username);
     const state = await getGameState(gameId);
-    const newPlayer = { id: playerId, username: playerUsername, hand: state.deck.splice(0, 7) };
-    state.players.push(newPlayer);
+    const existingPlayerIndex = state.players.findIndex(player => player.id === playerId);
+
+    if (existingPlayerIndex !== -1) {
+        state.players[existingPlayerIndex].hand = state.deck.splice(0, 7);
+    } else {
+        const newPlayer = { id: playerId, username: playerUsername, hand: state.deck.splice(0, 7) };
+        state.players.push(newPlayer);
+    }
 
     await updateGameState(gameId, state);
+
     return game;
 }
 
@@ -96,6 +108,7 @@ const getUserGameRooms = async (userId: number) => {
 
 const getGameState = async (gameId: number): Promise<GameState> => {
     const rows = await db.any(FETCH_GAME_STATE, [gameId]);
+    console.log("Raw rows fetched from database:", rows);
     const { state } = rows[0];
 
     const players = rows.map(row => ({
@@ -104,9 +117,15 @@ const getGameState = async (gameId: number): Promise<GameState> => {
         hand: state.players.find((player: Player) => player.id === row.id)?.hand || [],
     }));
 
+    console.log("Reconstructed players:", players);
+
+    const currentPlayer = players[state.currentTurn];
+    console.log("Current players:", currentPlayer);
+
     return {
         ...state,
         players,
+        currentPlayerUsername: currentPlayer?.username,
     } as GameState;
 };
 
