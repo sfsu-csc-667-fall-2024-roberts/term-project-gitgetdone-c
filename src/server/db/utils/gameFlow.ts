@@ -1,4 +1,4 @@
-import {GameState} from "../types/games";
+import {GameState} from "../../../types/games";
 
 export const advanceTurn = (state: GameState): number => {
     if (!state.players || state.players.length === 0) {

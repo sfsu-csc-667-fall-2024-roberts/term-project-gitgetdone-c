@@ -1,4 +1,4 @@
-import { GameState, Card } from "../types/games";
+import { GameState, Card } from "../../../types/games";
 
 export const applyCardEffects = (state: GameState, card: Card): void => {
     if (card.value === "skip") {

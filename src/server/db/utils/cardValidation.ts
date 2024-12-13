@@ -1,4 +1,4 @@
-import {Card, GameState} from "../types/games";
+import {Card, GameState} from "../../../types/games";
 import { applyCardEffects } from "./cardEffects";
 
 export const validateCardPlay = (state: GameState, card: Card): boolean => {
