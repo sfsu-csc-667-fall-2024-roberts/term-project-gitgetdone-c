@@ -88,6 +88,9 @@ console.log("currentPlayerId: ", currentPlayerId);
 <%- include('./partials/chat.ejs', { roomId: roomId }) %>
 <%- include('./partials/footer.ejs') %>
 
+
+
+
 <script>
     document.getElementById("player-cards").addEventListener("click", (e) => {
         const cardElement = e.target.closest(".card");
@@ -95,18 +98,37 @@ console.log("currentPlayerId: ", currentPlayerId);
             const color = cardElement.dataset.color;
             const value = cardElement.dataset.value;
 
+            console.log("Attempting to play card:", { color, value });
+            cardElement.style.opacity = "0.0";
+            cardElement.style.pointerEvents = "none";
+
             fetch(`/games/${gameId}/play-card`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ playerId: currentPlayerId, card: { color, value } })
             })
-                .then(response => response.json())
+                .then(async (response) => {
+                    console.log("Server responded with status:", response.status);
+                    const data = await response.json();
+                    console.log("Server responded with data:", data);
+                    return data;
+                })
                 .then(data => {
-                    if (data.success) {
-                        console.log("Card played successfully!");
+                    if (!data.success) {
+                        console.error("Invalid card play:", data.message);
+                        cardElement.style.opacity = "1";
+                        cardElement.style.pointerEvents = "auto";
+                        console.log(data.message || "Invalid card play.");
                     } else {
-                        alert(data.message || "Failed to play card.");
+                        console.log("Card played successfully.");
+                        cardElement.remove();
                     }
+                })
+                .catch(error => {
+                    console.error("Error playing card:", error);
+                    console.log("An error occurred while playing the card.");
+                    cardElement.style.opacity = "1";
+                    cardElement.style.pointerEvents = "auto";
                 });
         }
     });
@@ -122,17 +144,35 @@ console.log("currentPlayerId: ", currentPlayerId);
                 if (data.success) {
                     console.log("Card drawn successfully!");
                 } else {
-                    alert(data.message || "Failed to draw card.");
+                    console.log(data.message || "Failed to draw card.");
                 }
             });
     });
 </script>
+
+
+
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
     const socket = io();
 
     socket.emit("join-game", gameId);
+
+    socket.on("error", (data) => {
+        console.log("Received error event:", data);
+        if (data.playerId === currentPlayerId) {
+            console.log(data.message || "An error occurred.");
+
+            const cardElement = document.querySelector(
+                `.card[data-color="${data.card.color}"][data-value="${data.card.value}"]`
+            );
+            if (cardElement) {
+                cardElement.style.opacity = "1";
+                cardElement.style.pointerEvents = "auto";
+            }
+        }
+    });
 
     socket.on("game-state", (updatedState) => {
         console.log("Received updated game state:", updatedState);
@@ -186,6 +226,8 @@ console.log("currentPlayerId: ", currentPlayerId);
         }
     }
 </script>
+
+
 
 </body>
 </html>

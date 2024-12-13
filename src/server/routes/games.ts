@@ -134,13 +134,22 @@ router.post(
             const state = await Games.getGameState(parseInt(gameId, 10));
             const currentPlayer = state.players[state.currentTurn];
 
+            console.log("Received play-card request:", { playerId, card });
+
             if (currentPlayer.id !== playerId) {
+                console.error("Not the current player's turn.");
                 request.app.get("io").to(`game-${gameId}`).emit("error", { message: "Not your turn." });
                 return;
             }
 
             if (!validateCardPlay(state, card)) {
-                request.app.get("io").to(`game-${gameId}`).emit("error", { message: "Invalid card play." });
+                console.error("Invalid card play:", card);
+                request.app.get("io").to(`game-${gameId}`).emit("error", {
+                    message: "Invalid card play.",
+                    playerId,
+                    card
+                });
+                console.log("Emitted error event for invalid card play.");
                 return;
             }
 
@@ -172,7 +181,10 @@ router.post(
             }
 
             state.discardPile.push(card);
-            currentPlayer.hand = currentPlayer.hand.filter((c) => c !== card);
+
+            console.log("Before card removal:", currentPlayer.hand);
+            currentPlayer.hand = currentPlayer.hand.filter(c => !(c.color === card.color && c.value === card.value));
+            console.log("After card removal:", currentPlayer.hand);
 
             if (currentPlayer.hand.length === 0) {
                 request.app.get("io").to(`game-${gameId}`).emit("game-over", { winnerId: playerId });
@@ -182,14 +194,16 @@ router.post(
 
             advanceTurn(state);
             const updatedState = await Games.updateGameState(parseInt(gameId, 10), state);
+            console.log("Updated game state:", updatedState);
 
-            request.app.get("io").to(`game-${gameId}`).emit("turn-updated", {
-                currentTurn: state.currentTurn,
-                playerId: state.players[state.currentTurn].id,
-            });
+           // request.app.get("io").to(`game-${gameId}`).emit("turn-updated", {
+            //    currentTurn: state.currentTurn,
+            //    playerId: state.players[state.currentTurn].id,
+           // });
 
             request.app.get("io").to(`game-${gameId}`).emit("game-state", updatedState);
             request.app.get("io").to(`game-${gameId}`).emit("game-action", { type: "card-played", card, playerId });
+            console.log("Card played successfully:", card);
         } catch (error) {
             console.error("Error playing card:", error);
             request.app.get("io").to(`game-${gameId}`).emit("error", { message: "Failed to play card." });
