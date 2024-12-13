@@ -45,7 +45,11 @@ const create = async (playerId: number): Promise<GameDescription> => {
 
     await updateGameState(game.id, state);
 
-    return game;
+    return {
+        id: game.id,
+        players: 1,
+        player_count: game.player_count || 4,
+    };
 };
 
 const shuffleDeck = (): Array<{ color: string | null; value: string }> => {

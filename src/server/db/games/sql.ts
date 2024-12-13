@@ -1,8 +1,9 @@
 export const CREATE_GAME = `
-    INSERT INTO games (status, state)
+    INSERT INTO games (status, state, player_count)
     VALUES (
-        'pending',
-        '{"players": [], "deck": [], "discardPile": [], "currentTurn": 0, "direction": 1}'::jsonb
+            'pending',
+            '{"players": [], "deck": [], "discardPile": [], "currentTurn": 0, "direction": 1, "playersCount": 0}'::jsonb,
+            4 
            )
     RETURNING *;
 `;
