@@ -1,127 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title><%= title %></title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f8f9fa;
-        }
-
-        .card {
-            display: inline-block;
-            padding: 8px 16px;
-            margin: 4px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .red {
-            background-color: #ffcccc;
-            color: #990000;
-        }
-
-        .yellow {
-            background-color: #ffffcc;
-            color: #999900;
-        }
-
-        .green {
-            background-color: #ccffcc;
-            color: #009900;
-        }
-
-        .blue {
-            background-color: #ccccff;
-            color: #000099;
-        }
-
-        .wild {
-            background-color: #ddd;
-            color: #000;
-        }
-    </style>
-</head>
-<body>
-<h1>Uno Game</h1>
-<p>Game Room <%= gameId %></p>
-
-<div id="current-turn">
-    <h2>Current Turn</h2>
-    <p id="current-player">It's <%= gameState.currentPlayerUsername %>'s turn!</p>
-</div>
-
+<script src="/scripts/games.js"></script>
 <script>
     const gameId = <%- JSON.stringify(gameId) %>;
-    console.log("gameId: ", gameId);
     const currentPlayerId = <%- JSON.stringify(currentPlayerId) %>;
-    console.log("currentPlayerId: ", currentPlayerId);
 </script>
-
-<div>
-    <h2>Other Players:</h2>
-    <div style="display: flex; justify-content: center; gap: 16px;">
-        <% for (let i = 0; i < gameState.players.length; i++) { %>
-            <% if (gameState.players[i].id !== currentPlayerId) { %>
-                <div>
-                    <p>
-                        <%= gameState.players[i].username %>
-                        (<%= gameState.players[i].hand.length %> cards)
-                    </p>
-                </div>
-            <% } %>
-        <% } %>
-    </div>
-</div>
-
-<!-- top card -->
-<div style="margin: 24px 0;">
-    <h2>Top Card</h2>
-    <% if (gameState.discardPile.length > 0) { %>
-        <% const topCard = gameState.discardPile[gameState.discardPile.length - 1]; %>
-        <div id="top-card" class="card <%= topCard.color %>">
-            <%= topCard.color %> <%= topCard.value %>
-        </div>
-    <% } else { %>
-        <div id="top-card" class="card">No Cards</div>
-    <% } %>
-    <br/>
-    <button id="draw-card-btn" class="card wild">Draw Card</button>
-</div>
-
-<!-- current hand -->
-<div>
-    <h2>Your Cards</h2>
-    <div id="player-cards">
-        <% const currentPlayer = gameState.players.find(player => player.id === currentPlayerId); %>
-        <% if (currentPlayer) { %>
-            <% currentPlayer.hand.forEach(card => { %>
-                <div class="card <%= card.color %>" data-color="<%= card.color %>" data-value="<%= card.value %>">
-                    <%= card.color %> <%= card.value %>
-                </div>
-            <% }); %>
-        <% } else { %>
-            <p>No cards available</p>
-        <% } %>
-    </div>
-</div>
-
-<%- include('./partials/chat.ejs', { roomId: roomId }) %>
-<%- include('./partials/footer.ejs') %>
-
-
 <script>
     document.getElementById("player-cards").addEventListener("click", (e) => {
         const cardElement = e.target.closest(".card");
         if (cardElement) {
             const color = cardElement.dataset.color;
             const value = cardElement.dataset.value;
-
 
             if (value === "wild" || value === "wild_draw4") {
                 const chosenColor = prompt("Choose a color (red, yellow, green, blue):");
@@ -132,8 +19,8 @@
 
                 fetch(`/games/${gameId}/play-card`, {
                     method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({playerId: currentPlayerId, card: {color: chosenColor, value}})
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ playerId: currentPlayerId, card: { color: chosenColor, value } })
                 })
                     .then(response => response.json())
                     .then(data => {
@@ -152,39 +39,23 @@
                 return;
             }
 
-
-            console.log("Attempting to play card:", {color, value});
-            cardElement.style.opacity = "0.0";
-            cardElement.style.pointerEvents = "none";
-            console.log("Fetching play-card");
-
             fetch(`/games/${gameId}/play-card`, {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({playerId: currentPlayerId, card: {color, value}})
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ playerId: currentPlayerId, card: { color, value } })
             })
-                .then(async (response) => {
-                    console.log("Server responded with status:", response.status);
-                    const data = await response.json();
-                    console.log("Server responded with data:", data);
-                    return data;
-                })
+                .then(response => response.json())
                 .then(data => {
                     if (!data.success) {
                         console.error("Invalid card play:", data.message);
-                        cardElement.style.opacity = "1";
-                        cardElement.style.pointerEvents = "auto";
-                        console.log(data.message || "Invalid card play.");
+                        alert(data.message || "Invalid card play.");
                     } else {
-                        console.log("Card played successfully.");
                         cardElement.remove();
                     }
                 })
                 .catch(error => {
                     console.error("Error playing card:", error);
-                    console.log("An error occurred while playing the card.");
-                    cardElement.style.opacity = "1";
-                    cardElement.style.pointerEvents = "auto";
+                    alert("An error occurred while playing the card.");
                 });
         }
     });
@@ -192,32 +63,26 @@
     document.getElementById("draw-card-btn").addEventListener("click", () => {
         fetch(`/games/${gameId}/draw-card`, {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({playerId: currentPlayerId})
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ playerId: currentPlayerId })
         })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     console.log("Card drawn successfully!");
                 } else {
-                    console.log(data.message || "Failed to draw card.");
+                    console.error(data.message || "Failed to draw card.");
                 }
             });
     });
-</script>
 
-
-<script src="/socket.io/socket.io.js"></script>
-<script>
     const socket = io();
 
     socket.emit("join-game", gameId);
 
     socket.on("error", (data) => {
-        console.log("Received error event:", data);
+        console.error("Received error event:", data);
         if (data.playerId === currentPlayerId) {
-            console.log(data.message || "An error occurred.");
-
             const cardElement = document.querySelector(
                 `.card[data-color="${data.card.color}"][data-value="${data.card.value}"]`
             );
@@ -242,8 +107,7 @@
     });
 
     function updateCurrentPlayer(currentPlayerUsername) {
-        const currentPlayerElement = document.getElementById("current-player");
-        currentPlayerElement.textContent = `It's ${currentPlayerUsername}'s turn!`;
+        document.getElementById("current-player").textContent = `It's ${currentPlayerUsername}'s turn!`;
     }
 
     function updatePlayerCards(gameState) {
@@ -279,9 +143,7 @@
         gameState.players.forEach(player => {
             if (player.id !== currentPlayerId) {
                 const playerElement = document.createElement("div");
-                playerElement.innerHTML = `
-                    <p>${player.username} (${player.hand.length} cards)</p>
-                `;
+                playerElement.innerHTML = `<p>${player.username} (${player.hand.length} cards)</p>`;
                 otherPlayersContainer.appendChild(playerElement);
             }
         });
@@ -304,6 +166,3 @@
         }
     }
 </script>
-
-</body>
-</html>

@@ -1,0 +1,40 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f8f9fa;
+}
+
+.card {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.red {
+    background-color: #ffcccc;
+    color: #990000;
+}
+
+.yellow {
+    background-color: #ffffcc;
+    color: #999900;
+}
+
+.green {
+    background-color: #ccffcc;
+    color: #009900;
+}
+
+.blue {
+    background-color: #ccccff;
+    color: #000099;
+}
+
+.wild {
+    background-color: #ddd;
+    color: #000;
+}
