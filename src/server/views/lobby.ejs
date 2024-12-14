@@ -10,22 +10,24 @@
     <!-- Navbar -->
     <div class="flex justify-between items-center bg-gray-800 px-6 py-4">
         <div class="flex items-center space-x-4">
-            <h1 class="text-2xl font-bold text-yellow-400"><%= user.username %></h1>
-            <div class="flex items-center space-x-2">
-                <p class="text-xl font-bold">Coin</p>
-                <button class="bg-gray-700 px-2 py-1 rounded text-green-400">+</button>
-            </div>
+            <h1 class="text-2xl font-bold text-yellow-400"><%= user ? user.username : 'User' %></h1>
         </div>
         <div class="flex space-x-4">
-            <button class="bg-blue-500 px-4 py-2 rounded">
-                <a href="/profile">Profile</a>
-            </button>
-            <button class="bg-red-500 px-4 py-2 rounded">
-                <a href="/auth/logout">Logout</a>
-            </button>
-            <button class="bg-gray-700 px-4 py-2 rounded">
-                <a href="/settings">⚙ Settings</a>
-            </button>
+            <% if (user) { %>
+                <button class="bg-gray-700 px-4 py-2 rounded text-white">
+                    <a href="/lobby">Lobby</a>
+                </button>
+                <button class="bg-red-500 px-4 py-2 rounded">
+                    <a href="/auth/logout">Logout</a>
+                </button>
+            <% } else { %>
+                <button class="bg-blue-500 px-4 py-2 rounded">
+                    <a href="/login">Login</a>
+                </button>
+                <button class="bg-green-500 px-4 py-2 rounded">
+                    <a href="/signup">Sign Up</a>
+                </button>
+            <% } %>
         </div>
     </div>
 
@@ -94,24 +96,34 @@
             }
         };
 
-        // Handle "New Game" button
-        const newGameForm = document.getElementById("new-game-form");
-        newGameForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            try {
-                const response = await fetch("/games/create", { method: "POST" });
-                if (!response.ok) {
-                    throw new Error("Failed to create a new game");
-                }
-                const data = await response.json();
-                const gameId = data.gameId;
-
-                // Redirect to the new game room
-                window.location.href = `/games/${gameId}`;
-            } catch (error) {
-                console.error("Error creating a new game:", error.message);
-            }
+// Handle "New Game" button
+const newGameForm = document.getElementById("new-game-form");
+newGameForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+        // Send a POST request to create a new game
+        const response = await fetch("/games/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
         });
+
+        if (!response.ok) {
+            throw new Error("Failed to create a new game");
+        }
+
+        const data = await response.json();
+        const gameId = data.gameId;
+
+        // Redirect to the new game room or refresh the lobby to display the new game
+        window.location.href = `/games/${gameId}`;
+    } catch (error) {
+        console.error("Error creating a new game:", error.message);
+        alert("Failed to create a new game. Please try again.");
+    }
+});
+
 
         // Chat functionality
         const chatForm = document.getElementById("chat-form");
