@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "1Blessedman",
+    "database": "uno_game",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "1Blessedman",
+    "database": "uno_game_test",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "postgres",
+    "password": "1Blessedman",
+    "database": "uno_game_prod",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}

@@ -1,7 +1,9 @@
 import {Server} from "http";
 import {Express, RequestHandler} from "express";
 import {Server as SocketIOServer, Socket } from "socket.io";
-import {Games} from "../db/";
+// import {Games} from "../db/";
+import Games from "../db/games";
+
 
 let io: SocketIOServer | undefined;
 
