@@ -1,16 +1,22 @@
 export const CREATE_GAME = `
-INSERT INTO games (status)
-VALUES ('pending')
-RETURNING *, 1 as players
+    INSERT INTO games (status, state, player_count)
+    VALUES (
+            'pending',
+            '{"players": [], "deck": [], "discardPile": [], "currentTurn": 0, "direction": 1, "playersCount": 0}'::jsonb,
+            4 
+           )
+    RETURNING *;
 `;
 
 export const ADD_PLAYER = `
-INSERT INTO game_users (game_id, user_id, seat)
-VALUES ($1, $2, (SELECT COUNT(*) FROM game_users WHERE game_id = $1) + 1)
+INSERT INTO game_users (game_id, user_id, seat, username)
+VALUES ($1, $2, (SELECT COUNT(*) FROM game_users WHERE game_id = $1) + 1,
+        (SELECT username FROM users WHERE id = $2))
 RETURNING 
     game_id AS id, 
     (SELECT COUNT(*) FROM game_users WHERE game_id = $1) AS players,
-    (SELECT player_count FROM games WHERE id = $1) AS player_count
+    (SELECT player_count FROM games WHERE id = $1) AS player_count,
+    username;
 `;
 
 export const AVAILABLE_GAMES = `
@@ -38,3 +44,29 @@ GROUP BY g.id
 export const GET_USER_GAMES = `
 SELECT game_id FROM game_users WHERE user_id = $1
 `
+
+export const UPDATE_GAME_STATE = `
+UPDATE games
+SET state = $2
+WHERE id = $1
+RETURNING state;
+`;
+
+export const FETCH_GAME_STATE = `
+SELECT g.state, gu.user_id AS id, gu.username
+FROM games g
+JOIN game_users gu ON g.id = gu.game_id
+WHERE g.id = $1;
+`;
+
+export const SET_GAME_FINISHED = `
+UPDATE games
+SET status = 'finished'
+WHERE id = $1;
+`;
+
+export const GET_USERNAME = `
+SELECT username 
+FROM users 
+WHERE id = $1;
+`;

@@ -1,0 +1,5 @@
+<%- include('./gameInfo', { gameState, currentPlayerId }) %>
+<%- include('./topCard', { gameState }) %>
+<%- include('./playerCards', { gameState, currentPlayerId }) %>
+<%- include('../partials/chat', { roomId }) %>
+<%- include('./scripts', { gameId, currentPlayerId }) %>

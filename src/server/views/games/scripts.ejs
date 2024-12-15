@@ -1,0 +1,178 @@
+<script>
+    const gameId = <%- JSON.stringify(gameId) %>;
+    console.log("gameId: ", gameId);
+    const currentPlayerId = <%- JSON.stringify(currentPlayerId) %>;
+    console.log("currentPlayerId: ", currentPlayerId);
+</script>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    document.getElementById("player-cards").addEventListener("click", (e) => {
+        const cardElement = e.target.closest(".card");
+        if (cardElement) {
+            const color = cardElement.dataset.color;
+            const value = cardElement.dataset.value;
+
+            if (value === "wild" || value === "wild_draw4") {
+                const chosenColor = prompt("Choose a color (red, yellow, green, blue):");
+                if (!["red", "yellow", "green", "blue"].includes(chosenColor)) {
+                    alert("Invalid color. Please try again.");
+                    return;
+                }
+
+                fetch(`/games/${gameId}/play-card`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ playerId: currentPlayerId, card: { color: chosenColor, value } })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error("Invalid card play:", data.message);
+                            alert(data.message || "Invalid card play.");
+                        } else {
+                            console.log("Card played successfully.");
+                            cardElement.remove();
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error playing card:", error);
+                        alert("An error occurred while playing the card.");
+                    });
+                return;
+            }
+
+            fetch(`/games/${gameId}/play-card`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ playerId: currentPlayerId, card: { color, value } })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error("Invalid card play:", data.message);
+                        alert(data.message || "Invalid card play.");
+                    } else {
+                        cardElement.remove();
+                    }
+                })
+                .catch(error => {
+                    console.error("Error playing card:", error);
+                    alert("An error occurred while playing the card.");
+                });
+        }
+    });
+
+    document.getElementById("draw-card-btn").addEventListener("click", () => {
+        fetch(`/games/${gameId}/draw-card`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ playerId: currentPlayerId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Card drawn successfully!");
+                } else {
+                    console.error(data.message || "Failed to draw card.");
+                    alert(data.message || "Failed to draw card.");
+                }
+            });
+    });
+
+    const socket = io();
+
+    socket.emit("join-game", gameId);
+
+    socket.on("error", (data) => {
+        console.error("Received error event:", data);
+        if (data.playerId === currentPlayerId) {
+            const cardElement = document.querySelector(
+                `.card[data-color="${data.card.color}"][data-value="${data.card.value}"]`
+            );
+            if (cardElement) {
+                cardElement.style.opacity = "1";
+                cardElement.style.pointerEvents = "auto";
+            }
+        }
+    });
+
+    socket.on("game-state", (updatedState) => {
+        console.log("Received updated game state:", updatedState);
+        updatePlayerCards(updatedState);
+        updateOtherPlayers(updatedState);
+        updateTopCard(updatedState);
+        updateCurrentPlayer(updatedState.players[updatedState.currentTurn].username);
+    });
+
+    socket.on("turn-updated", (data) => {
+        console.log("Turn updated:", data);
+        updateCurrentPlayer(data.currentPlayerUsername);
+    });
+
+    function updateCurrentPlayer(currentPlayerUsername) {
+        const currentPlayerElement = document.getElementById("current-player");
+        if (currentPlayerElement) {
+            currentPlayerElement.textContent = `It's ${currentPlayerUsername}'s turn!`;
+        } else {
+            console.error('Element with id "current-player" not found.');
+        }
+    }
+
+    function updatePlayerCards(gameState) {
+        const currentPlayer = gameState.players.find(player => player.id === currentPlayerId);
+        const playerCardsContainer = document.getElementById("player-cards");
+
+        playerCardsContainer.innerHTML = "";
+
+        if (currentPlayer) {
+            currentPlayer.hand.forEach(card => {
+                const cardElement = document.createElement("div");
+                const cardText = card.value.includes("wild")
+                    ? `Wild ${card.value === "wild_draw4" ? "Draw 4" : ""}`
+                    : `${card.color} ${card.value}`;
+
+                cardElement.className = `card ${card.color || "wild"}`;
+                cardElement.dataset.color = card.color || "null";
+                cardElement.dataset.value = card.value;
+
+                cardElement.textContent = cardText;
+
+                playerCardsContainer.appendChild(cardElement);
+            });
+        } else {
+            playerCardsContainer.innerHTML = "<p>No cards available</p>";
+        }
+    }
+
+    function updateOtherPlayers(gameState) {
+        const otherPlayersContainer = document.querySelector("div > h2 + div");
+        otherPlayersContainer.innerHTML = "";
+
+        gameState.players.forEach(player => {
+            if (player.id !== currentPlayerId) {
+                const playerElement = document.createElement("div");
+                playerElement.innerHTML = `<p>${player.username} (${player.hand.length} cards)</p>`;
+                otherPlayersContainer.appendChild(playerElement);
+            }
+        });
+    }
+
+    function updateTopCard(gameState) {
+        const topCardContainer = document.getElementById("top-card");
+
+        if (gameState.discardPile.length > 0) {
+            const topCard = gameState.discardPile[gameState.discardPile.length - 1];
+
+            const cardText = topCard.value.includes("wild")
+                ? `Wild ${topCard.value === "wild_draw4" ? "Draw 4" : ""}`
+                : `${topCard.color} ${topCard.value}`;
+            topCardContainer.className = `card ${topCard.color || "wild"}`;
+            topCardContainer.textContent = cardText;
+        } else {
+            topCardContainer.className = "card";
+            topCardContainer.textContent = "No Cards";
+        }
+    }
+</script>
