@@ -1,0 +1,7 @@
+<div>
+    <%- include('./currentTurn', { gameState }) %>
+    <%- include('./otherPlayers', { gameState, currentPlayerId }) %>
+</div>
+<script>
+    console.log("gameState in gameInfo.ejs:", <%- JSON.stringify(gameState) %>);
+</script>
