@@ -4,15 +4,18 @@ body {
     background-color: #f8f9fa;
 }
 
+/* Card styles */
 .card {
     display: inline-block;
-    padding: 8px 16px;
-    margin: 4px;
+    padding: 10px 20px; /* Increased padding for a better visual appeal */
+    margin: 8px; /* Increased margin to create more space between cards */
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 8px; /* Slightly increased border-radius for a softer look */
     font-weight: bold;
     cursor: pointer;
+    font-size: 1.1em; /* Larger font size for better readability */
 }
+
 
 .red {
     background-color: #ffcccc;
@@ -37,4 +40,105 @@ body {
 .wild {
     background-color: #ddd;
     color: #000;
+}
+/* Layout styles */
+.game-container {
+    display: flex;
+    flex-direction: row; /* Ensures items are laid out horizontally */
+    align-items: stretch; /* Makes sure children stretch to fill the container height */
+    width: 98%; /* Adjusted width to use more of the viewport */
+    max-width: 1200px; /* Maximum width for larger screens */
+    height: calc(100vh - 40px); /* Adjusted height to ensure it fits better */
+    margin: 20px auto; /* Centered the container with top and bottom margins */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for aesthetic enhancement */
+}
+
+
+.game-content {
+    flex: 1; /* Takes up the remaining space */
+    padding: 20px; /* Increased padding for more internal space */
+    overflow-y: auto; /* Allows scrolling if content is too long */
+}
+
+/* Additional enhancements for better visibility and interaction */
+#chat-section {
+   
+    color: #fff; /* White text for readability */
+    border-right: 1px solid #ccc; /* Adds separation from the game content */
+}
+
+/* Message List Styles */
+#messages {
+    background-color: #1a1a1a; /* Even darker background for the message list */
+    padding: 10px;
+    border-radius: 8px;
+    flex-grow: 1; /* Allows the message list to fill the available space */
+    overflow-y: auto; /* Allows scrolling */
+}
+
+/* Chat Message Template Styles */
+.chat-message {
+    color: #fff; /* Ensures text is readable */
+    margin-bottom: 8px; /* Space between messages */
+}
+
+.username {
+    color: #facc15; /* Bright color for username for visibility */
+    font-weight: bold;
+    margin-right: 5px; /* Space between username and message content */
+}
+
+.content {
+    color: #e5e7eb; /* Slightly lighter text color for message content */
+}
+
+/* Chat Input Form Styles */
+form {
+    display: flex;
+    margin-top: 10px; /* Space above the form inside the chat section */
+}
+
+input {
+    flex-grow: 1; /* Allows input to take up available horizontal space */
+    border: 1px solid #334155; /* Subtle border color */
+    background-color: #334155; /* Dark background for input */
+    color: #d1d5db; /* Lighter text color for visibility */
+    padding: 8px;
+    border-radius: 6px; /* Rounded corners for the input */
+}
+
+button {
+    background-color: #2563eb; /* Blue background for send button */
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px; /* Rounded corners for the button */
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #1d4ed8; /* Darker blue on hover for the button */
+}
+
+/* Enhancements for scrolling within the chat messages */
+#messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+#messages::-webkit-scrollbar-track {
+    background: #374151; /* Track color matches the input background */
+}
+
+#messages::-webkit-scrollbar-thumb {
+    background: #6b7280; /* Thumb color for contrast against the track */
+}
+
+#messages::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af; /* Lighter thumb color on hover */
+}
+
+
+/* Enhancements for text legibility and aesthetics */
+.game-content p, .chat-container p {
+    line-height: 1.6; /* Improved line spacing for better readability */
+    margin-bottom: 10px; /* Space between paragraphs */
 }

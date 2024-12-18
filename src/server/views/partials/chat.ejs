@@ -1,17 +1,32 @@
-<aside id="chat-section">
+<aside id="chat-section" class="bg-gray-800 p-4 rounded-lg">
+    <!-- Chat Message Template -->
     <template id="chat-message-template">
-        <li class="chat-message">
-            <span class="content"></span>
+        <li class="chat-message flex items-start space-x-2 mb-2">
+            <span class="text-yellow-400 font-bold username"></span>
+            <span class="content text-gray-300"></span>
         </li>
     </template>
 
-    <ul id="messages"></ul>
-    <form action="/chat/<%= roomId %>" method="post">
+    <!-- Messages List -->
+    <ul
+        id="messages"
+        class="bg-gray-900 p-4 rounded-lg h-96 overflow-y-scroll mb-4 text-sm"
+    ></ul>
+
+    <!-- Chat Input Form -->
+    <form
+        action="/chat/<%= roomId %>"
+        method="post"
+        class="flex items-center space-x-2"
+    >
         <input
-                id="chat-message"
-                autocomplete="off"
-                class="border border-black rounded px-2 py-1"
+            id="chat-message"
+            autocomplete="off"
+            placeholder="Type your message..."
+            class="flex-grow border border-gray-700 bg-gray-700 text-white rounded px-4 py-2"
         />
-        <button class="bg-black text-white px-4 py-2 rounded">Send</button>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Send
+        </button>
     </form>
 </aside>

@@ -1,18 +1,29 @@
 import express from "express";
-import checkAuthentication from "../middleware/check-authentication";
 import chatMiddleware from "../middleware/chat";
-import {Games} from "../db";
+import { Games } from "../db";
 
 const router = express.Router();
 
-router.get("/", checkAuthentication, chatMiddleware, async (_request, response) => {
-    const user = response.locals.user;
-    const roomId = response.locals.roomId;
+router.get("/", chatMiddleware, async (request, response) => {
+    const user = response.locals.user || null; // Optional user
+    const roomId = response.locals.roomId || null; // Optional roomId
+    const error = request.query.error || null; // Extract 'error' query parameter
     const availableGames = await Games.availableGames();
 
-    console.log("In /lobby route handler, roomId:", roomId);
+    console.log("In /lobby route handler", {
+        roomId,
+        user: user ? user.username : "Guest",
+        error,
+    });
 
-    response.render("lobby", { title: "Game Lobby", user, roomId, availableGames });
+    // Render the lobby with error messages and available games
+    response.render("lobby", {
+        title: "Game Lobby",
+        user,
+        roomId,
+        availableGames,
+        error,
+    });
 });
 
 export default router;

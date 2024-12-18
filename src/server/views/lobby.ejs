@@ -6,29 +6,52 @@
     <title><%= title %></title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-white text-black min-h-screen">
-<!-- Navbar -->
-<div class="flex justify-between items-center bg-gray-200 px-6 py-4">
-    <h1 class="text-2xl font-bold text-black"><%= user.username %></h1>
-    <div class="flex space-x-4">
-        <button class="bg-black text-white px-4 py-2 rounded"><a href="/auth/logout">Logout</a></button>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Navbar -->
+    <div class="flex justify-between items-center bg-gray-800 px-6 py-4">
+        <div class="flex items-center space-x-4">
+            <h1 class="text-2xl font-bold text-yellow-400"><%= user ? user.username : 'User' %></h1>
+        </div>
+        <div class="flex space-x-4">
+            <% if (user) { %>
+                <button class="bg-gray-700 px-4 py-2 rounded text-white">
+                    <a href="/lobby">Lobby</a>
+                </button>
+                <button class="bg-red-500 px-4 py-2 rounded">
+                    <a href="/auth/logout">Logout</a>
+                </button>
+            <% } else { %>
+                <button class="bg-blue-500 px-4 py-2 rounded">
+                    <a href="/auth/login">Login</a>
+                </button>
+                <button class="bg-green-500 px-4 py-2 rounded">
+                    <a href="/auth/signup">Sign Up</a>
+                </button>
+            <% } %>
+        </div>
     </div>
-</div>
-<!-- Welcome Section -->
-<div class="p-8 text-center">
-    <h2 class="text-3xl font-bold text-black mb-4">
-        UNO
-    </h2>
-</div>
+    <!-- Welcome Section -->
+    <div class="p-8 text-center">
+        <h2 class="text-4xl font-bold text-green-400 mb-4">Welcome to UNO Game</h2>
+        <p class="text-lg text-gray-300 mb-4">
+            Please select your game or start a new game with your team member.
+        </p>
+        <p class="text-lg text-pink-400 cursor-pointer hover:underline">Invite Your Friend</p>
+    </div>
 <!-- Split Layout -->
 <div class="grid grid-cols-3 gap-6 px-8">
     <!-- Left Section -->
+     
     <div class="col-span-2">
         <div class="flex space-x-4 mb-8">
             <form method="post" action="/games/create">
-                <button class="bg-gray-300 text-black px-6 py-3 rounded w-1/4">New Game</button>
+                <button class="bg-gray-300 text-black px-8 py-4 rounded w-40 text-lg font-bold">
+                    New Game
+                </button>
             </form>
         </div>
+    <!-- </div> -->
+    
 
         <table class="w-full">
             <tbody id="available-games-list">

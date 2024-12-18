@@ -1,5 +1,12 @@
-<%- include('./gameInfo', { gameState, currentPlayerId }) %>
-<%- include('./topCard', { gameState }) %>
-<%- include('./playerCards', { gameState, currentPlayerId }) %>
-<%- include('../partials/chat', { roomId }) %>
+<!-- content.ejs -->
+<div class="game-container">
+    <div class="game-content">
+        <%- include('./gameInfo', { gameState, currentPlayerId }) %>
+        <%- include('./topCard', { gameState }) %>
+        <%- include('./playerCards', { gameState, currentPlayerId }) %>
+    </div>
+    <div class="chat-container">
+        <%- include('../partials/chat', { roomId }) %>
+    </div>
+</div>
 <%- include('./scripts', { gameId, currentPlayerId }) %>
