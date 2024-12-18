@@ -21,41 +21,46 @@ const PORT = process.env.PORT || 3000;
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
-config.session(app);
+// Configure sessions
+const sessionMiddleware = config.session(app);
+app.use(sessionMiddleware);
 
-// Redirect root path to the lobby
-app.get("/", (req, res) => res.redirect("/lobby"));
+// Apply authentication middleware globally
+app.use(checkAuthentication);
 
-// Route setup
-app.use("/", routes.home);
-app.use("/lobby", routes.mainLobby); // No authentication required
-app.use("/auth", routes.auth);
-app.use("/games", checkAuthentication, routes.games); // Requires authentication
-app.use("/chat", checkAuthentication, routes.chat); // Requires authentication
-
-// Serve static files
+// Set views and static files
+app.set("views", path.join(process.cwd(), "src", "server", "views"));
+app.set("view engine", "ejs");
 app.use("/styles", express.static(path.join(__dirname, "views/styles")));
 const staticPath = path.join(process.cwd(), "src", "public");
 app.use(express.static(staticPath));
 
 // Configure Socket.IO
 config.livereload(app, staticPath);
-const sessionMiddleware = config.session(app);
 config.configureSocketIO(server, app, sessionMiddleware);
 
-app.use(cookieParser());
-app.set("views", path.join(process.cwd(), "src", "server", "views"));
-app.set("view engine", "ejs");
-app.use(express.static(path.join(process.cwd(), "src", "public")));
-
-
-// Chat middleware
+// Apply additional middleware
 app.use(middleware.chat);
+
+// Redirect root path to the lobby
+app.get("/", (_req, res) => res.redirect("/lobby"));
+
+// Route setup
+app.use("/auth", routes.auth); // Public routes
+app.use("/lobby", routes.mainLobby); // Optional authentication
+app.use("/games", checkAuthentication, routes.games); // Requires authentication
+app.use("/chat", checkAuthentication, routes.chat); // Requires authentication
 
 // Handle 404 errors
 app.use((_request, _response, next) => {
     next(httpErrors(404, "Page Not Found"));
+});
+
+// Debugging route for session data
+app.get("/debug-session", (req, res) => {
+    res.json(req.session);
 });
 
 // Start the server

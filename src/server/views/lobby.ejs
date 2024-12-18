@@ -8,83 +8,99 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen">
     <!-- Navbar -->
-    <div class="flex justify-between items-center bg-gray-800 px-6 py-4">
+    <nav class="flex justify-between items-center bg-gray-800 px-6 py-4 shadow-md">
+        <!-- Welcome User -->
         <div class="flex items-center space-x-4">
-            <h1 class="text-2xl font-bold text-yellow-400"><%= user ? user.username : 'User' %></h1>
+            <h1 class="text-2xl font-bold text-yellow-400">
+                Welcome, <%= user ? user.username : 'Guest' %>
+            </h1>
         </div>
+        <!-- Navigation Links -->
         <div class="flex space-x-4">
             <% if (user) { %>
-                <button class="bg-gray-700 px-4 py-2 rounded text-white">
-                    <a href="/lobby">Lobby</a>
-                </button>
-                <button class="bg-red-500 px-4 py-2 rounded">
-                    <a href="/auth/logout">Logout</a>
-                </button>
+                <a href="/lobby" class="bg-gray-700 px-4 py-2 rounded text-white hover:bg-gray-600">
+                    Lobby
+                </a>
+                <form method="post" action="/auth/logout" id="logout-form" class="inline-block">
+                    <button class="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-400">
+                        Logout
+                    </button>
+                </form>
             <% } else { %>
-                <button class="bg-blue-500 px-4 py-2 rounded">
-                    <a href="/auth/login">Login</a>
-                </button>
-                <button class="bg-green-500 px-4 py-2 rounded">
-                    <a href="/auth/register">Sign Up</a>
-                </button>
+                <a href="/auth/login" class="bg-blue-500 px-4 py-2 rounded text-white hover:bg-blue-400">
+                    Login
+                </a>
+                <a href="/auth/register" class="bg-green-500 px-4 py-2 rounded text-white hover:bg-green-400">
+                    Sign Up
+                </a>
             <% } %>
         </div>
-    </div>
+    </nav>
+
     <!-- Welcome Section -->
-    <div class="p-8 text-center">
+    <header class="p-8 text-center">
         <h2 class="text-4xl font-bold text-green-400 mb-4">Welcome to UNO Game</h2>
         <p class="text-lg text-gray-300 mb-4">
-            Please select your game or start a new game with your team member.
+            Please select your game or start a new game with your team members.
         </p>
-    </div>
-<!-- Split Layout -->
-<div class="grid grid-cols-3 gap-6 px-8">
-    <!-- Left Section -->
-     
-    <div class="col-span-2">
-        <div class="flex space-x-4 mb-8">
-            <form method="post" action="/games/create">
-                <button class="bg-gray-300 text-black px-8 py-4 rounded w-40 text-lg font-bold">
-                    New Game
-                </button>
-            </form>
-        </div>
-    <!-- </div> -->
-    
+    </header>
 
-        <table class="w-full">
-            <tbody id="available-games-list">
-            <% locals.availableGames !== undefined && availableGames.forEach((room) => { %>
-                <tr id="game-row-<%= room.id %>">
-                    <td class="border-b border-black py-1">Game <%= room.id %></td>
-                    <td class="border-b border-black py-1">(<%= room.players %> / <%= room.player_count %>)</td>
-                    <td class="text-center border-b border-black py-1">
-                        <form action="/games/join/<%= room.id %>" method="post">
-                            <button class="bg-black text-white rounded-sm px-2 border border-black">Join</button>
-                        </form>
-                    </td>
-                </tr>
-            <% }); %>
-            </tbody>
-        </table>
-    </div>
-
-    <template id="game-row-template">
-        <tr>
-            <td class="border-b border-black py-1"></td>
-            <td class="border-b border-black py-1"></td>
-            <td class="text-center border-b border-black py-1">
-                <form action="/join/X" method="post">
-                    <button class="bg-black text-white rounded-sm px-2 border border-black">Join</button>
+    <!-- Main Content -->
+    <main class="grid grid-cols-3 gap-6 px-8">
+        <!-- Game Creation and List Section -->
+        <section class="col-span-2">
+            <div class="flex space-x-4 mb-8">
+                <form method="post" action="/games/create">
+                    <button class="bg-gray-300 text-black px-8 py-4 rounded w-40 text-lg font-bold hover:bg-gray-200">
+                        New Game
+                    </button>
                 </form>
-            </td>
-        </tr>
-    </template>
+            </div>
 
-    <%- include('./partials/chat.ejs', { roomId: roomId }) %>
-    <%- include('./partials/footer.ejs') %>
-</div>
+            <!-- Available Games Table -->
+            <table class="w-full border-collapse bg-gray-800 rounded-lg shadow-md">
+                <thead>
+                    <tr class="bg-gray-700 text-white">
+                        <th class="border-b border-gray-600 py-2 text-left px-4">Game ID</th>
+                        <th class="border-b border-gray-600 py-2 text-left px-4">Players</th>
+                        <th class="border-b border-gray-600 py-2 text-center px-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="available-games-list">
+                    <% if (availableGames && availableGames.length > 0) { %>
+                        <% availableGames.forEach((room) => { %>
+                            <tr id="game-row-<%= room.id %>" class="hover:bg-gray-700">
+                                <td class="border-b border-gray-600 py-2 px-4">Game <%= room.id %></td>
+                                <td class="border-b border-gray-600 py-2 px-4">
+                                    (<%= room.players %> / <%= room.player_count %>)
+                                </td>
+                                <td class="text-center border-b border-gray-600 py-2 px-4">
+                                    <form action="/games/join/<%= room.id %>" method="post">
+                                        <button class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+                                            Join
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="3" class="text-center text-gray-400 py-4">
+                                No games available. Create a new one to get started!
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </section>
 
-<script src="/js/lobby.js"></script>
+        <!-- Chat Section -->
+        <%- include('./partials/chat.ejs', { roomId: roomId }) %>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-6">
+        <%- include('./partials/footer.ejs') %>
+    </footer>
 </body>
 </html>

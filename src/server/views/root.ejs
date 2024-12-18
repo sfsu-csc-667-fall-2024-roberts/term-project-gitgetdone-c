@@ -9,12 +9,15 @@
         </p>
 
         <ul>
-            <li><a href="/auth/login">Login</a></li>
-            <li><a href="/auth/register">Register</a></li>
-            <li><a href="/lobby">Lobby</a></li>
-            <li><a href="/games/1">Games</a></li>
-            <li><a href="/auth/logout">Logout</a></li>
+            <% if (user) { %>
+                <li><a href="/lobby">Lobby</a></li>
+                <li><a href="/auth/logout">Logout</a></li>
+            <% } else { %>
+                <li><a href="/auth/login">Login</a></li>
+                <li><a href="/auth/register">Sign Up</a></li>
+            <% } %>
         </ul>
+        
         <script src="/js/main.js"></script>
     </body>
 </html>
