@@ -27,9 +27,6 @@ app.use(cookieParser());
 const sessionMiddleware = config.session(app);
 app.use(sessionMiddleware);
 
-// Apply authentication middleware globally
-app.use(checkAuthentication);
-
 // Set views and static files
 app.set("views", path.join(process.cwd(), "src", "server", "views"));
 app.set("view engine", "ejs");
@@ -41,15 +38,21 @@ app.use(express.static(staticPath));
 config.livereload(app, staticPath);
 config.configureSocketIO(server, app, sessionMiddleware);
 
-// Apply additional middleware
+// Apply global middleware for chat and user status
 app.use(middleware.chat);
+
+// Middleware to attach user session data to response.locals
+app.use((req, res, next) => {
+    res.locals.user = req.session?.user || null;
+    next();
+});
 
 // Redirect root path to the lobby
 app.get("/", (_req, res) => res.redirect("/lobby"));
 
 // Route setup
 app.use("/auth", routes.auth); // Public routes
-app.use("/lobby", routes.mainLobby); // Optional authentication
+app.use("/lobby", routes.mainLobby); // Accessible to all users
 app.use("/games", checkAuthentication, routes.games); // Requires authentication
 app.use("/chat", checkAuthentication, routes.chat); // Requires authentication
 
@@ -67,3 +70,4 @@ app.get("/debug-session", (req, res) => {
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+

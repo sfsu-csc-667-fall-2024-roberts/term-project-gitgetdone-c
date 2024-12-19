@@ -17,10 +17,10 @@
         </div>
         <!-- Navigation Links -->
         <div class="flex space-x-4">
+            <a href="/lobby" class="bg-gray-700 px-4 py-2 rounded text-white hover:bg-gray-600">
+                Lobby
+            </a>
             <% if (user) { %>
-                <a href="/lobby" class="bg-gray-700 px-4 py-2 rounded text-white hover:bg-gray-600">
-                    Lobby
-                </a>
                 <form method="post" action="/auth/logout" id="logout-form" class="inline-block">
                     <button class="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-400">
                         Logout
@@ -50,11 +50,15 @@
         <!-- Game Creation and List Section -->
         <section class="col-span-2">
             <div class="flex space-x-4 mb-8">
-                <form method="post" action="/games/create">
-                    <button class="bg-gray-300 text-black px-8 py-4 rounded w-40 text-lg font-bold hover:bg-gray-200">
-                        New Game
-                    </button>
-                </form>
+                <% if (user) { %>
+                    <form method="post" action="/games/create">
+                        <button class="bg-gray-300 text-black px-8 py-4 rounded w-40 text-lg font-bold hover:bg-gray-200">
+                            New Game
+                        </button>
+                    </form>
+                <% } else { %>
+                    <p class="text-gray-400">Log in to create or join games.</p>
+                <% } %>
             </div>
 
             <!-- Available Games Table -->
@@ -75,11 +79,15 @@
                                     (<%= room.players %> / <%= room.player_count %>)
                                 </td>
                                 <td class="text-center border-b border-gray-600 py-2 px-4">
-                                    <form action="/games/join/<%= room.id %>" method="post">
-                                        <button class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
-                                            Join
-                                        </button>
-                                    </form>
+                                    <% if (user) { %>
+                                        <form action="/games/join/<%= room.id %>" method="post">
+                                            <button class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+                                                Join
+                                            </button>
+                                        </form>
+                                    <% } else { %>
+                                        <p class="text-gray-400">Log in to join games.</p>
+                                    <% } %>
                                 </td>
                             </tr>
                         <% }); %>

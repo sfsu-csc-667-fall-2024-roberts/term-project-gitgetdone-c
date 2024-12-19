@@ -69,15 +69,14 @@ router.post("/login", async (req: LoginRequest, res) => {
     }
 });
 
-// Updated POST Logout Route
 router.post("/logout", (req, res) => {
     req.session.destroy((err) => {
         if (err) {
             console.error("Logout error:", err);
-            return res.redirect("/?error=Logout failed");
+            return res.redirect("/lobby?error=Logout failed");
         }
         res.clearCookie("connect.sid");
-        res.redirect("/auth/login");
+        res.redirect("/lobby");
     });
 });
 

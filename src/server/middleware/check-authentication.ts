@@ -16,28 +16,22 @@ export default function checkAuthentication(
     response: Response,
     next: NextFunction
 ) {
+    // Always attach the user (or null) to `response.locals`
+    response.locals.user = request.session?.user || null;
+
     // Define paths that do not require authentication
-    const publicPaths = ["/auth/login", "/auth/register", "/auth/logout"];
+    const publicPaths = ["/auth/login", "/auth/register", "/auth/logout", "/lobby"];
 
     // Allow access to public paths without authentication
-    if (publicPaths.includes(request.path)) {
-        // Attach the user to response.locals if the user is logged in
-        if (request.session?.user) {
-            response.locals.user = request.session.user;
-        } else {
-            response.locals.user = null;
-        }
+    if (publicPaths.some((path) => request.path.startsWith(path))) {
         return next();
     }
 
-    // Check if user session exists
+    // Redirect unauthenticated users from protected paths
     if (!request.session?.user) {
         console.log("Invalid authentication: User not logged in");
         return response.redirect("/auth/login");
     }
-
-    // Attach the user object from session to response.locals for template rendering
-    response.locals.user = request.session.user;
 
     // Proceed to the next middleware or route handler
     next();
