@@ -23,7 +23,9 @@ app.use(express.urlencoded({ extended: false }));
 
 config.session(app);
 
-app.use("/", routes.home);
+app.get("/", (req, res) => {
+    res.redirect("/lobby");
+});
 app.use("/lobby", checkAuthentication, routes.mainLobby);
 app.use("/auth", routes.auth);
 app.use("/games", checkAuthentication, routes.games);

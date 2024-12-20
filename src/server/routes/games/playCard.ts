@@ -99,7 +99,11 @@ router.post(
             console.log("After card removal:", currentPlayer.hand);
 
             if (currentPlayer.hand.length === 0) {
-                req.app.get("io").to(`game-${gameId}`).emit("game-over", { winnerId: playerId });
+                console.log(`[Server] Player ${playerId} (${currentPlayer.username}) has won the game.`);
+                req.app.get("io").to(`game-${gameId}`).emit("game-over", {
+                    winnerId: playerId,
+                    winnerUsername: currentPlayer.username
+                });
                 await Games.finishGame(parseInt(gameId, 10));
                 res.status(200).json({ success: true, message: "Player won!" });
                 return;
