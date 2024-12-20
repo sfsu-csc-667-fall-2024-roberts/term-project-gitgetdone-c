@@ -41,7 +41,9 @@ const create = async (playerId: number): Promise<GameDescription> => {
         players: [initialPlayer],
         currentTurn: 0,
         direction: 1,
+        winnerId: null, // Initialize winnerId as null
     };
+    
 
     await updateGameState(game.id, state);
 
