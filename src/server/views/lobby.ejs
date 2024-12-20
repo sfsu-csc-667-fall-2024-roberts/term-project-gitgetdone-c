@@ -6,39 +6,61 @@
     <title><%= title %></title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-white text-black min-h-screen">
-<!-- Navbar -->
-<div class="flex justify-between items-center bg-gray-200 px-6 py-4">
-    <h1 class="text-2xl font-bold text-black"><%= user.username %></h1>
+<body class="bg-gray-100 text-gray-800 min-h-screen">
+
+<div class="flex justify-between items-center bg-gray-800 text-white px-6 py-4">
+    <h1 class="text-2xl font-bold"><%= user.username %></h1>
+
+    <div class="absolute left-1/2 transform -translate-x-1/2">
+        <p class="text-lg font-medium">Welcome to the UNO Lobby</p>
+    </div>
+
     <div class="flex space-x-4">
-        <button class="bg-black text-white px-4 py-2 rounded"><a href="/auth/logout">Logout</a></button>
+        <a href="/auth/logout" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
+            Logout
+        </a>
     </div>
 </div>
-<!-- Welcome Section -->
+
+
 <div class="p-8 text-center">
-    <h2 class="text-3xl font-bold text-black mb-4">
-        UNO
+    <h2 class="text-4xl font-bold text-gray-800">
     </h2>
 </div>
-<!-- Split Layout -->
+
+<!-- Main Content Section -->
 <div class="grid grid-cols-3 gap-6 px-8">
-    <!-- Left Section -->
+
+    <!-- Left Section (Games) -->
     <div class="col-span-2">
-        <div class="flex space-x-4 mb-8">
-            <form method="post" action="/games/create">
-                <button class="bg-gray-300 text-black px-6 py-3 rounded w-1/4">New Game</button>
+        <!-- New Game Button -->
+        <div class="flex mb-6">
+            <form method="post" action="/games/create" class="flex w-full">
+                <button class="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 transition w-full">
+                    Create New Game
+                </button>
             </form>
         </div>
 
-        <table class="w-full">
+        <!-- Available Games Table -->
+        <table class="w-full border-collapse bg-white rounded shadow-md">
+            <thead>
+            <tr class="bg-gray-200">
+                <th class="py-2 px-4 text-left">Game</th>
+                <th class="py-2 px-4 text-left">Players</th>
+                <th class="py-2 px-4 text-center">Join</th>
+            </tr>
+            </thead>
             <tbody id="available-games-list">
             <% locals.availableGames !== undefined && availableGames.forEach((room) => { %>
-                <tr id="game-row-<%= room.id %>">
-                    <td class="border-b border-black py-1">Game <%= room.id %></td>
-                    <td class="border-b border-black py-1">(<%= room.players %> / <%= room.player_count %>)</td>
-                    <td class="text-center border-b border-black py-1">
+                <tr class="border-b last:border-b-0">
+                    <td class="py-2 px-4">Game <%= room.id %></td>
+                    <td class="py-2 px-4">(<%= room.players %> / <%= room.player_count %>)</td>
+                    <td class="py-2 px-4 text-center">
                         <form action="/games/join/<%= room.id %>" method="post">
-                            <button class="bg-black text-white rounded-sm px-2 border border-black">Join</button>
+                            <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+                                Join
+                            </button>
                         </form>
                     </td>
                 </tr>
@@ -47,22 +69,16 @@
         </table>
     </div>
 
-    <template id="game-row-template">
-        <tr>
-            <td class="border-b border-black py-1"></td>
-            <td class="border-b border-black py-1"></td>
-            <td class="text-center border-b border-black py-1">
-                <form action="/join/X" method="post">
-                    <button class="bg-black text-white rounded-sm px-2 border border-black">Join</button>
-                </form>
-            </td>
-        </tr>
-    </template>
+    <!-- Chat Section -->
+    <div class="col-span-1">
+        <%- include('./partials/chat.ejs', { roomId: roomId }) %>
+    </div>
 
-    <%- include('./partials/chat.ejs', { roomId: roomId }) %>
-    <%- include('./partials/footer.ejs') %>
 </div>
 
+<%- include('./partials/footer.ejs') %>
+
+<!-- JavaScript -->
 <script src="/js/lobby.js"></script>
 </body>
 </html>

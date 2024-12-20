@@ -1,2 +1,15 @@
-<h1>Uno Game</h1>
-<p>Game Room <%= gameId %></p>
+<div class="relative flex justify-between items-center bg-gray-800 text-white px-6 py-4">
+    <h1 class="text-2xl font-bold"><%= user.username %></h1>
+
+    <div class="absolute left-1/2 transform -translate-x-1/2">
+        <p class="text-lg font-medium">
+        <h1 class="text-2xl font-bold">Game Room <%= gameId %></h1>
+        </p>
+    </div>
+
+    <div class="flex space-x-4">
+        <a href="/auth/logout" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
+            Logout
+        </a>
+    </div>
+</div>
