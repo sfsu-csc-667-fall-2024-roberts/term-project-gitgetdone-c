@@ -6,22 +6,32 @@ const router = express.Router();
 
 router.get("/", chatMiddleware, async (req, res) => {
     try {
-        // Retrieve user information from response.locals
-        const user = res.locals.user || null;
-        const roomId = res.locals.roomId || null;
+        const user = res.locals.user ?? null;
+        const roomId = res.locals.roomId ?? "unknown";
         const error = req.query.error || null;
 
-        // Fetch available games
-        const availableGames = await Games.availableGames();
+        let availableGames = [];
+        try {
+            availableGames = await Games.availableGames();
+            if (!Array.isArray(availableGames)) {
+                console.error("Unexpected format for available games:", availableGames);
+                availableGames = [];
+            }
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error("Failed to fetch available games:", err.message);
+            } else {
+                console.error("Unexpected error fetching available games:", err);
+            }
+        }
 
-        // Log the data for debugging
         console.log("In /lobby route handler", {
             user: user ? user.username : "Guest",
             roomId,
             error,
+            availableGamesCount: availableGames.length,
         });
 
-        // Render the lobby template with the provided data
         res.render("lobby", {
             title: "Game Lobby",
             user,
@@ -30,13 +40,26 @@ router.get("/", chatMiddleware, async (req, res) => {
             error,
         });
     } catch (err) {
-        // Handle errors gracefully
-        console.error("Error in /lobby route:", err);
+        if (err instanceof Error) {
+            console.error("Error in /lobby route:", {
+                message: err.message,
+                stack: err.stack,
+                user: res.locals.user,
+                roomId: res.locals.roomId,
+            });
 
-        res.status(500).render("error", {
-            title: "Error",
-            message: "An error occurred while loading the game lobby. Please try again later.",
-        });
+            res.status(500).render("error", {
+                title: "Error",
+                message: "An error occurred while loading the game lobby. Please try again later.",
+            });
+        } else {
+            console.error("Unexpected error type in /lobby route:", err);
+
+            res.status(500).render("error", {
+                title: "Error",
+                message: "An unknown error occurred. Please try again later.",
+            });
+        }
     }
 });
 
