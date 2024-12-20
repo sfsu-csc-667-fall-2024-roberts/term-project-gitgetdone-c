@@ -1,7 +1,18 @@
 <div>
-    <%- include('./currentTurn', { gameState }) %>
-    <%- include('./otherPlayers', { gameState, currentPlayerId }) %>
+    <% if (gameState.winnerId) { %>
+        <!-- End-game message -->
+        <div class="game-over-message bg-green-500 text-white text-center p-4 rounded-lg" role="alert">
+            <h2 class="text-2xl font-bold">Game Over!</h2>
+            <p class="text-lg">
+                Congratulations, <%= winner ? winner.username : 'Unknown Player' %>, you won the game!
+            </p>
+        </div>
+    <% } else { %>
+        <!-- Regular game UI -->
+        <%- include('./currentTurn', { gameState }) %>
+        <%- include('./otherPlayers', { gameState, currentPlayerId }) %>
+    <% } %>
 </div>
 <script>
-    console.log("gameState in gameInfo.ejs:", <%- JSON.stringify(gameState) %>);
+    console.log("gameState in gameInfo.ejs:", <%= JSON.stringify(gameState).replace(/</g, "\\u003c") %>);
 </script>
