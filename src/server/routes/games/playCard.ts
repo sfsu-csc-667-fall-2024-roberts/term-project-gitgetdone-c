@@ -99,11 +99,15 @@ router.post(
             console.log("After card removal:", currentPlayer.hand);
 
             if (currentPlayer.hand.length === 0) {
+                console.log(`Player ${currentPlayer.id} (${currentPlayer.username}) has won the game!`);
                 req.app.get("io").to(`game-${gameId}`).emit("game-over", { winnerId: playerId });
-                await Games.finishGame(parseInt(gameId, 10));
+                await Games.finishGame(parseInt(gameId, 10)); // Ensure this updates the database
+                state.winnerId = currentPlayer.id; // Update the game state with the winner
+                await Games.updateGameState(parseInt(gameId, 10), state); // Persist state
                 res.status(200).json({ success: true, message: "Player won!" });
                 return;
             }
+            
 
             advanceTurn(state);
 
