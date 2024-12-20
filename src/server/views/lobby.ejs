@@ -22,7 +22,6 @@
     </div>
 </div>
 
-
 <div class="p-8 text-center">
     <h2 class="text-4xl font-bold text-gray-800">
     </h2>
@@ -53,7 +52,7 @@
             </thead>
             <tbody id="available-games-list">
             <% locals.availableGames !== undefined && availableGames.forEach((room) => { %>
-                <tr class="border-b last:border-b-0">
+                <tr id="game-row-<%= room.id %>" class="border-b last:border-b-0">
                     <td class="py-2 px-4">Game <%= room.id %></td>
                     <td class="py-2 px-4">(<%= room.players %> / <%= room.player_count %>)</td>
                     <td class="py-2 px-4 text-center">
@@ -66,8 +65,24 @@
                 </tr>
             <% }); %>
             </tbody>
+
         </table>
     </div>
+
+    <template id="game-row-template">
+        <tr class="border-b bg-white hover:bg-gray-50">
+            <td class="py-2 px-4 text-gray-800">Game Placeholder</td>
+            <td class="py-2 px-4 text-gray-800">(0 / 4)</td>
+            <td class="py-2 px-4 text-center">
+                <form action="/join/X" method="post">
+                    <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+                        Join
+                    </button>
+                </form>
+            </td>
+        </tr>
+    </template>
+
 
     <!-- Chat Section -->
     <div class="col-span-1">
