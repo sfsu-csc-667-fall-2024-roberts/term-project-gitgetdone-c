@@ -10,10 +10,11 @@ export type Player = {
 };
 
 export type GameState = {
+    deck: Card[];
+    discardPile: Card[];
     players: Player[];
     currentTurn: number;
     direction: number;
-    discardPile: Card[];
-    deck: Card[];
     chosenColor?: string | null;
+    winnerId?: number|null; // Add this line
 };
