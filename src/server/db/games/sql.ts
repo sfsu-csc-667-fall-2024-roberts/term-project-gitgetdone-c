@@ -20,13 +20,19 @@ RETURNING
 `;
 
 export const AVAILABLE_GAMES = `
-SELECT *,
-    (SELECT COUNT(*) FROM game_users WHERE games.id=game_users.game_id) AS players 
-FROM games WHERE id IN 
-    (SELECT game_id FROM game_users GROUP BY game_id HAVING COUNT(*) < 4)
-LIMIT $1
-OFFSET $2
+    SELECT * ,
+    (SELECT COUNT(*) FROM game_users WHERE games.id = game_users.game_id) AS players
+    FROM games
+    WHERE status != 'finished' AND id IN (
+        SELECT game_id
+        FROM game_users
+        GROUP BY game_id
+        HAVING COUNT(*) < player_count 
+    )
+    LIMIT $1
+    OFFSET $2;
 `;
+
 
 export const IS_USER_IN_GAME = `
 SELECT 1 FROM game_users

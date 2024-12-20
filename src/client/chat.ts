@@ -2,16 +2,15 @@ const form = document.querySelector('#chat-section form')! as HTMLFormElement;
 const input = document.querySelector('input#chat-message')! as HTMLInputElement;
 const messageTemplate = document.querySelector('#chat-message-template')! as HTMLTemplateElement;
 
-input.addEventListener('keydown', keyDownEvent => {
-    if (keyDownEvent.key === 'Enter') {
-        form.dispatchEvent(new CustomEvent('submit'));
-    }
-})
-
 form.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    const message = input.value;
+    const message = input.value.trim();
+    if (!message) {
+        console.error('Cannot send an empty message.');
+        return;
+    }
+
     input.value = '';
 
     fetch(form.action, {

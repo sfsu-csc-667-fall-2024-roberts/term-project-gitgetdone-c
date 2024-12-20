@@ -1,17 +1,20 @@
-<aside id="chat-section">
+<aside id="chat-section" class="border border-gray-300 rounded p-4 bg-white">
     <template id="chat-message-template">
-        <li class="chat-message">
-            <span class="content"></span>
+        <li class="chat-message rounded p-2 mb-1 bg-gray-100">
+            <span class="content text-gray-800"></span>
         </li>
     </template>
 
-    <ul id="messages"></ul>
-    <form action="/chat/<%= roomId %>" method="post">
+    <ul id="messages" class="space-y-0 p-4 max-h-64 overflow-auto bg-gray-50 rounded">
+    </ul>
+
+    <form action="/chat/<%= roomId %>" method="post" class="mt-4 flex items-center space-x-2">
         <input
                 id="chat-message"
                 autocomplete="off"
-                class="border border-black rounded px-2 py-1"
+                class="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Type your message here"
         />
-        <button class="bg-black text-white px-4 py-2 rounded">Send</button>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Send</button>
     </form>
 </aside>
