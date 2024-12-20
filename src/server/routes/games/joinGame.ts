@@ -4,32 +4,50 @@ import { Games } from "../../db";
 const router = Router();
 
 router.post("/join/:gameId", async (req, res) => {
-    // @ts-ignore
-    const { id: user_id } = req.session.user;
+    if (!req.session?.user) {
+        return res.redirect('/auth/login?error=Please login to join a game');
+    }
+
+    const { id: userId, username } = req.session.user;
     const { gameId } = req.params;
     const game_id = parseInt(gameId, 10);
 
     try {
-        const userInGame = await Games.isUserInGame(user_id, game_id);
-        if (userInGame) {
-            return res.redirect(`/games/${gameId}`);
-        }
-
-        const gameInfo = await Games.getGameInfo(game_id);
-        if (!gameInfo) {
+        // Get current game state
+        const state = await Games.getGameState(game_id);
+        if (!state) {
             return res.redirect("/lobby?error=game-not-found");
         }
 
-        const players = parseInt(gameInfo.players, 10);
-        const maxPlayers = parseInt(gameInfo.player_count, 10);
-        if (players >= maxPlayers) {
+        // Check if user is already in the game
+        const playerExists = state.players.some(p => p.id === userId);
+        if (playerExists) {
+            return res.redirect(`/games/${gameId}`);
+        }
+
+        // Check if game is full
+        if (state.players.length >= 4) {
             return res.redirect("/lobby?error=game-full");
         }
 
-        await Games.join(user_id, game_id);
+        // Create new player with initial hand
+        const newPlayer = {
+            id: userId,
+            username: username,
+            hand: state.deck.splice(0, 7) // Deal 7 cards from the deck
+        };
 
-        const updatedState = await Games.getGameState(game_id);
-        req.app.get("io").to(`game-${game_id}`).emit("game-state", updatedState);
+        // Add new player to the game
+        state.players.push(newPlayer);
+
+        // Update game state
+        await Games.updateGameState(game_id, state);
+
+        // Notify other players
+        req.app.get("io").to(`game-${gameId}`).emit("player-joined", {
+            playerId: userId,
+            username: username
+        });
 
         res.redirect(`/games/${gameId}`);
     } catch (error) {

@@ -1,5 +1,6 @@
 import express, { Request } from "express";
 import { Users } from "../db";
+import { Games } from "../db";
 
 const router = express.Router();
 
@@ -14,30 +15,34 @@ type RegisterRequest = Request<{
     password: string;
 }>;
 
-router.post("/register", async (req: RegisterRequest, res) => {
-    const { username, email, password } = req.body;
-
+router.post("/logout", async (req, res) => {
     try {
-        const existingUser = await Users.findByEmail(email);
-        if (existingUser) {
-            return res.redirect("/auth/register?error=User already exists");
+        // If user was in a game, notify other players
+        if (req.session?.user?.id && req.session?.user?.username) {
+            const userGames = await Games.getUserGameRooms(req.session.user.id);
+            const io = req.app.get("io");
+            
+            userGames.forEach(({ game_id }) => {
+                io.to(`game-${game_id}`).emit("player-left", {
+                    playerId: req.session.user!.id,
+                    username: req.session.user!.username
+                });
+            });
         }
-
-        const user = await Users.create({ username, email, password });
-        req.session.user = { id: user.id, username: user.username, email: user.email };
-
-        req.session.save((err) => {
+         req.session.destroy((err) => {
             if (err) {
-                console.error("Session save error:", err);
-                return res.redirect("/auth/register?error=Session save failed");
+                console.error("Logout error:", err);
+                return res.redirect("/lobby?error=Logout failed");
             }
+            res.clearCookie("connect.sid");
             res.redirect("/lobby");
         });
     } catch (error) {
-        console.error("Registration error:", error);
-        res.redirect("/auth/register?error=Unknown error occurred");
+        console.error("Error during logout:", error);
+        res.redirect("/lobby");
     }
-});
+}
+ );
 
 router.get("/login", (req, res) => {
     const error = req.query.error || null;
@@ -69,15 +74,33 @@ router.post("/login", async (req: LoginRequest, res) => {
     }
 });
 
-router.post("/logout", (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            console.error("Logout error:", err);
-            return res.redirect("/lobby?error=Logout failed");
+router.post("/logout", async (req, res) => {
+    try {
+        // If user was in a game, notify other players
+        if (req.session?.user) {
+            const userGames = await Games.getUserGameRooms(req.session.user.id);
+            const io = req.app.get("io");
+            
+            userGames.forEach(({ game_id }) => {
+                io.to(`game-${game_id}`).emit("player-left", {
+                    playerId: req.session!.user!.id,
+                    username: req.session!.user!.username
+                });
+            });
         }
-        res.clearCookie("connect.sid");
+
+        req.session.destroy((err) => {
+            if (err) {
+                console.error("Logout error:", err);
+                return res.redirect("/lobby?error=Logout failed");
+            }
+            res.clearCookie("connect.sid");
+            res.redirect("/lobby");
+        });
+    } catch (error) {
+        console.error("Error during logout:", error);
         res.redirect("/lobby");
-    });
+    }
 });
 
 export default router;

@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+    </script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen">
     <!-- Navbar -->
@@ -21,8 +25,8 @@
                 Lobby
             </a>
             <% if (user) { %>
-                <form method="post" action="/auth/logout" id="logout-form" class="inline-block">
-                    <button class="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-400">
+                <form action="/auth/logout" method="post" class="inline">
+                    <button type="submit" class="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-400">
                         Logout
                     </button>
                 </form>
@@ -80,9 +84,10 @@
                                 </td>
                                 <td class="text-center border-b border-gray-600 py-2 px-4">
                                     <% if (user) { %>
-                                        <form action="/games/join/<%= room.id %>" method="post">
-                                            <button class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
-                                                Join
+                                        <form method="post" action="/games/join/<%= room.id %>" class="inline">
+                                            <input type="hidden" name="tabId" id="tabId" value="">
+                                            <button type="submit" class="bg-blue-500 px-4 py-2 rounded text-white hover:bg-blue-400">
+                                                Join Game
                                             </button>
                                         </form>
                                     <% } else { %>
@@ -110,5 +115,13 @@
     <footer class="mt-6">
         <%- include('./partials/footer.ejs') %>
     </footer>
+
+    <script>
+        // Set unique tab ID for each form
+        document.querySelectorAll('form').forEach(form => {
+            const tabId = Math.random().toString(36).substr(2, 9);
+            form.querySelector('#tabId').value = tabId;
+        });
+    </script>
 </body>
 </html>

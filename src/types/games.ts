@@ -16,5 +16,6 @@ export type GameState = {
     currentTurn: number;
     direction: number;
     chosenColor?: string | null;
-    winnerId?: number|null; // Add this line
+    winnerId?: number | null;
+    currentPlayerUsername?: string;
 };

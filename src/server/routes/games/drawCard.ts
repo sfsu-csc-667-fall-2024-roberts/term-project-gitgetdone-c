@@ -51,7 +51,7 @@ router.post(
                 currentPlayerUsername: state.players[state.currentTurn].username,
             });
 
-            req.app.get("io").to(`game-${gameId}`).emit("game-state", updatedState);
+            req.app.get("io").to(`game-${gameId}-${req.query.tabId}`).emit("game-state", updatedState);
             req.app.get("io").to(`game-${gameId}`).emit("game-action", { type: "card-drawn", playerId, card });
 
             res.status(200).json({ success: true, card });

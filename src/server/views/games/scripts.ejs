@@ -1,19 +1,52 @@
 <script>
-  const gameId = <%= JSON.stringify(gameId) %>;
-  const currentPlayerId = <%= JSON.stringify(currentPlayerId) %>;
+  const gameId = `<%= JSON.stringify(gameId) %>`;
+  const currentPlayerId = `<%= JSON.stringify(currentPlayerId) %>`;
+  const tabId = Math.random().toString(36).substr(2, 9);
+  const socket = io({
+    query: {
+        tabId: tabId
+    }
+  });
 
     console.log("Game ID:", gameId);
     console.log("Current Player ID:", currentPlayerId);
 
-    const socket = io();
-
     // Join the game room
-    socket.emit("join-game", gameId);
+    socket.emit("join-game", { gameId, tabId });
 
     // Listen for game state updates
     socket.on("game-state", (updatedState) => {
-        console.log("Updated game state received:", updatedState);
+        console.log("Game state updated:", updatedState);
+        gameState = updatedState;
         updateGameUI(updatedState);
+    });
+
+    // Handle player leaving
+    socket.on("player-left", ({ playerId, username }) => {
+        console.log(`Player ${username} left the game`);
+        // Show a notification to remaining players
+        const notification = document.createElement('div');
+        notification.className = 'bg-yellow-500 text-white p-4 rounded fixed top-4 right-4';
+        notification.textContent = `${username} has left the game`;
+        document.body.appendChild(notification);
+        
+        // Remove notification after 3 seconds
+        setTimeout(() => notification.remove(), 3000);
+        
+        // If current player left, redirect to lobby
+        if (playerId === parseInt(currentPlayerId)) {
+            window.location.href = '/lobby';
+        }
+    });
+
+    // Handle disconnection
+    socket.on("disconnect", () => {
+        console.log("Disconnected from server");
+        // Show reconnection message
+        const notification = document.createElement('div');
+        notification.className = 'bg-red-500 text-white p-4 rounded fixed top-4 right-4';
+        notification.textContent = 'Lost connection to server. Please refresh the page.';
+        document.body.appendChild(notification);
     });
 
     // Listen for game-over event
@@ -109,18 +142,15 @@
     function updateGameUI(gameState) {
         updatePlayerCards(gameState);
         updateOtherPlayers(gameState);
-        updateTopCard(gameState);
-
-        const currentPlayerElement = document.getElementById("current-player");
-        if (currentPlayerElement) {
-            const currentPlayerTurn = gameState.players[gameState.currentTurn]?.username || "Unknown";
-            currentPlayerElement.textContent = `It's ${currentPlayerTurn}'s turn!`;
-        }
+        updateDiscardPile(gameState);
+        updateTurnDisplay(gameState);
     }
 
     // Update player's cards
     function updatePlayerCards(gameState) {
-        const currentPlayer = gameState.players.find((player) => player.id === currentPlayerId);
+        const currentPlayer = gameState.players.find(p => p.id === parseInt(currentPlayerId));
+        if (!currentPlayer) return;
+        
         const playerCardsContainer = document.getElementById("player-cards");
         playerCardsContainer.innerHTML = "";
 
@@ -151,7 +181,7 @@
     }
 
     // Update the top card on the discard pile
-    function updateTopCard(gameState) {
+    function updateDiscardPile(gameState) {
         const topCardContainer = document.getElementById("top-card");
         const topCard = gameState.discardPile[gameState.discardPile.length - 1];
 
@@ -165,4 +195,30 @@
             topCardContainer.textContent = "No Cards";
         }
     }
+
+    // Update the turn display function
+    function updateTurnDisplay(state) {
+        const currentPlayerElement = document.getElementById("current-turn");
+        if (currentPlayerElement) {
+            const currentPlayer = state.players[state.currentTurn];
+            currentPlayerElement.textContent = `It's ${currentPlayer.username}'s turn!`;
+        }
+    }
+
+    // Update socket event listeners
+    socket.on("turn-updated", (data) => {
+        console.log("Turn updated:", data);
+        if (gameState) {
+            gameState.currentTurn = data.currentTurn;
+            gameState.currentPlayerUsername = data.currentPlayerUsername;
+            gameState.direction = data.direction;
+            updateTurnDisplay(gameState);
+        }
+    });
+
+    socket.on("game-state", (updatedState) => {
+        console.log("Game state updated:", updatedState);
+        gameState = updatedState;
+        updateGameUI(updatedState);
+    });
 </script>

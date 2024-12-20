@@ -1,4 +1,5 @@
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="/socket.io/socket.io.js"></script>
 <body class="bg-gray-900 text-gray-100 min-h-screen">
 <!-- Navbar -->
 <div class="flex justify-between items-center bg-gray-800 px-6 py-4">
@@ -13,15 +14,17 @@
             <button class="bg-gray-700 px-4 py-2 rounded text-white">
                 <a href="/lobby">Lobby</a>
             </button>
-            <button class="bg-red-500 px-4 py-2 rounded">
-                <a href="/auth/logout">Logout</a>
-            </button>
+            <form action="/auth/logout" method="post" class="inline">
+                <button type="submit" class="bg-red-500 px-4 py-2 rounded text-white">
+                    Logout
+                </button>
+            </form>
         <% } else { %>
             <button class="bg-blue-500 px-4 py-2 rounded">
                 <a href="/auth/login">Login</a>
             </button>
             <button class="bg-green-500 px-4 py-2 rounded">
-                <a href="/auth/signup">Sign Up</a>
+                <a href="/auth/register">Sign Up</a>
             </button>
         <% } %>
     </div>

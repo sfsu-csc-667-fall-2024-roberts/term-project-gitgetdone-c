@@ -51,10 +51,10 @@ app.use((req, res, next) => {
 app.get("/", (_req, res) => res.redirect("/lobby"));
 
 // Route setup
-app.use("/auth", routes.auth); // Public routes
-app.use("/lobby", routes.mainLobby); // Accessible to all users
-app.use("/games", checkAuthentication, routes.games); // Requires authentication
-app.use("/chat", checkAuthentication, routes.chat); // Requires authentication
+app.use("/auth", routes.auth);
+app.use("/lobby", routes.mainLobby);
+app.use("/games", routes.games);
+app.use("/chat", routes.chat);
 
 // Handle 404 errors
 app.use((_request, _response, next) => {

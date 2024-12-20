@@ -11,18 +11,26 @@ router.post(
     async (req: Request<{ gameId: string }, {}, { playerId: number; card: Card }>, res: Response): Promise<void> => {
         const { gameId } = req.params;
         const { playerId, card } = req.body;
-        console.log("In play-card route");
-
+        
         try {
+            console.log("In play-card route");
+            console.log("Received play-card request:", { playerId, card });
+            
             const state = await Games.getGameState(parseInt(gameId, 10));
             const currentPlayer = state.players[state.currentTurn];
+            
+            // Debug logging
+            console.log("Current game state:", {
+                currentTurn: state.currentTurn,
+                currentPlayerId: currentPlayer.id,
+                requestPlayerId: playerId,
+                currentPlayerUsername: currentPlayer.username
+            });
 
-            console.log("Received play-card request:", { playerId, card });
-
-            if (currentPlayer.id !== playerId) {
-                console.error("Not the current player's turn.");
-                req.app.get("io").to(`game-${gameId}`).emit("error", { message: "Not your turn." });
-                res.status(400).json({ success: false, message: "Not your turn." });
+            // Convert playerId to number for comparison
+            if (currentPlayer.id !== Number(playerId)) {
+                console.log(`Not the current player's turn. Expected: ${currentPlayer.id} Got: ${playerId}`);
+                res.status(400).json({ success: false, message: "Not your turn" });
                 return;
             }
 
@@ -116,8 +124,9 @@ router.post(
             req.app.get("io").to(`game-${gameId}`).emit("turn-updated", {
                 currentTurn: state.currentTurn,
                 playerId: state.players[state.currentTurn].id,
-                currentPlayerUsername: state.players[state.currentTurn].username,
+                currentPlayerUsername: state.players[state.currentTurn].username
             });
+
             req.app.get("io").to(`game-${gameId}`).emit("game-state", updatedState);
 
             console.log("Card played successfully:", card);

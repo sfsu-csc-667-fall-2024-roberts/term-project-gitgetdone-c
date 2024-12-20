@@ -8,7 +8,11 @@ const router = Router();
 // GET Game Details
 router.get("/:gameId", checkAuthentication, chatMiddleware, async (req, res) => {
     const { gameId } = req.params;
-    const user = res.locals.user;
+    const user = req.session?.user;
+
+    if (!user) {
+        return res.redirect("/auth/login");
+    }
 
     try {
         const state = await Games.getGameState(parseInt(gameId, 10));
@@ -16,25 +20,31 @@ router.get("/:gameId", checkAuthentication, chatMiddleware, async (req, res) => 
             return res.redirect("/lobby?error=game-not-found");
         }
 
-        // Determine winner if the game has ended
-        const winner =
-            state.winnerId != null
-                ? state.players.find(player => player.id === state.winnerId)
-                : null;
+        // Ensure each player sees only their own hand
+        const sanitizedState = {
+            ...state,
+            players: state.players.map(player => ({
+                ...player,
+                // If this is the current player, show their hand, otherwise just show card count
+                hand: player.id === user.id ? player.hand : new Array(player.hand.length)
+            }))
+        };
+
+        const currentPlayer = sanitizedState.players.find(p => p.id === user.id);
+        if (!currentPlayer) {
+            return res.redirect("/lobby?error=not-in-game");
+        }
 
         res.render("games", {
             title: `Game ${gameId}`,
             gameId: parseInt(gameId, 10),
-            gameState: state,
+            gameState: sanitizedState,
             currentPlayerId: user.id,
-            roomId: res.locals.roomId,
-            winner, // Pass the winner to the EJS template
+            currentPlayer: currentPlayer,
+            roomId: res.locals.roomId
         });
     } catch (error) {
-        console.error("Error fetching game state:", {
-            message: error instanceof Error ? error.message : "Unknown error",
-            stack: error instanceof Error ? error.stack : "No stack available",
-        });
+        console.error("Error fetching game state:", error);
         res.redirect("/lobby?error=failed-to-load-game");
     }
 });

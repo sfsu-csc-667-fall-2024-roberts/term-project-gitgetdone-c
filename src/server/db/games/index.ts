@@ -41,7 +41,8 @@ const create = async (playerId: number): Promise<GameDescription> => {
         players: [initialPlayer],
         currentTurn: 0,
         direction: 1,
-        winnerId: null, // Initialize winnerId as null
+        winnerId: null,
+        currentPlayerUsername: initialPlayer.username
     };
     
 
@@ -114,19 +115,15 @@ const getUserGameRooms = async (userId: number) => {
 
 const getGameState = async (gameId: number): Promise<GameState> => {
     const rows = await db.any(FETCH_GAME_STATE, [gameId]);
-    console.log("Raw rows fetched from database:", rows);
     const { state } = rows[0];
 
-    const players = rows.map(row => ({
-        id: row.id,
-        username: row.username,
-        hand: state.players.find((player: Player) => player.id === row.id)?.hand || [],
+    const players = state.players.map((player: Player) => ({
+        id: player.id,
+        username: player.username,
+        hand: player.hand || []
     }));
 
-    console.log("Reconstructed players:", players);
-
     const currentPlayer = players[state.currentTurn];
-    console.log("Current players:", currentPlayer);
 
     return {
         ...state,
