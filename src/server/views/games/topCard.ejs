@@ -1,12 +1,12 @@
 <div style="margin: 24px 0;">
-    <h2>Top Card</h2>
+    <h2 class="font-bold">Top Card</h2>
     <% if (gameState.discardPile.length > 0) { %>
         <% const topCard = gameState.discardPile[gameState.discardPile.length - 1]; %>
-        <div id="top-card" class="card <%= topCard.color %>">
+        <div id="top-card" class="card <%= topCard.color %> mb-4">
             <%= topCard.color %> <%= topCard.value %>
         </div>
     <% } else { %>
-        <div id="top-card" class="card">No Cards</div>
+        <div id="top-card" class="card mb-4">No Cards</div>
     <% } %>
     <br/>
     <button id="draw-card-btn" class="card wild">Draw Card</button>
