@@ -12,12 +12,7 @@ export const validateCardPlay = (state: GameState, card: Card): boolean => {
         return false;
     }
 
-    if (topCard.color === card.color || topCard.value === card.value) {
-        applyCardEffects(state, card);
-        return true;
-    }
-
-    if (card.value === "wild" || card.value === "wild_draw4") {
+    if (topCard.color === card.color || topCard.value === card.value || card.value === "wild" || card.value === "wild_draw4") {
         applyCardEffects(state, card);
         return true;
     }

@@ -6,11 +6,7 @@ const router = express.Router();
 
 router.get("/:roomId", checkAuthentication, chatMiddleware, (request, response) => {
     const{ roomId } = request.params;
-
     const message = request.body.message;
-
-    console.log({message});
-
     response.status(200).send();
 });
 
@@ -20,8 +16,6 @@ router.post("/:roomId", checkAuthentication, chatMiddleware, (request, response)
     // @ts-expect-error
     const { email, gravatar } = request.session.user;
     const io = request.app.get("io");
-
-    console.log(`New message in room ${roomId}: ${message}`);
 
     io.emit(`message:${roomId}`, {
         message,

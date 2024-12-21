@@ -52,7 +52,3 @@ app.use((_request, _response, next) => {
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
-
-
-

@@ -6,21 +6,19 @@ export const advanceTurn = (state: GameState): number => {
     }
 
     if (state.currentTurn < 0 || state.currentTurn >= state.players.length) {
-        console.error(
-            `Invalid currentTurn: ${state.currentTurn}. Resetting to 0.`
-        );
+        // console.error(`Invalid currentTurn: ${state.currentTurn}. Resetting to 0.`);
         state.currentTurn = 0;
     }
 
     if (state.direction !== 1 && state.direction !== -1) {
-        console.error(`Invalid direction: ${state.direction}. Defaulting to 1.`);
+        // console.error(`Invalid direction: ${state.direction}. Defaulting to 1.`);
         state.direction = 1;
     }
 
     const nextTurn = (state.currentTurn + state.direction + state.players.length) % state.players.length;
     state.currentTurn = nextTurn;
 
-    console.log(`Advanced turn to: ${nextTurn}`);
+    // console.log(`Advanced turn to: ${nextTurn}`);
     return nextTurn;
 };
 

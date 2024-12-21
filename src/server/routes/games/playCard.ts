@@ -11,29 +11,23 @@ router.post(
     async (req: Request<{ gameId: string }, {}, { playerId: number; card: Card }>, res: Response): Promise<void> => {
         const { gameId } = req.params;
         const { playerId, card } = req.body;
-        console.log("In play-card route");
 
         try {
             const state = await Games.getGameState(parseInt(gameId, 10));
             const currentPlayer = state.players[state.currentTurn];
 
-            console.log("Received play-card request:", { playerId, card });
-
             if (currentPlayer.id !== playerId) {
-                console.error("Not the current player's turn.");
                 req.app.get("io").to(`game-${gameId}`).emit("error", { message: "Not your turn." });
                 res.status(400).json({ success: false, message: "Not your turn." });
                 return;
             }
 
             if (!validateCardPlay(state, card)) {
-                console.error("Invalid card play:", card);
                 req.app.get("io").to(`game-${gameId}`).emit("error", {
                     message: "Invalid card play.",
                     playerId,
                     card
                 });
-                console.log("Emitted error event for invalid card play.");
                 res.status(400).json({ success: false, message: "Invalid card play." });
                 return;
             }
@@ -57,7 +51,6 @@ router.post(
 
             if (card.value === "wild" || card.value === "wild_draw4") {
                 if (!card.color || card.color === "null") {
-                    console.error("Wild card must have a chosen color.");
                     req.app.get("io").to(`game-${gameId}`).emit("error", {
                         message: "You must choose a color for the wild card.",
                         playerId,
@@ -89,17 +82,14 @@ router.post(
 
             state.discardPile.push(card);
 
-            console.log("Before card removal:", currentPlayer.hand);
             currentPlayer.hand = currentPlayer.hand.filter(c => {
                 if (c.value === "wild" || c.value === "wild_draw4") {
                     return c.value !== card.value || (c.color !== null && c.color !== "null");
                 }
                 return c.color !== card.color || c.value !== card.value;
             });
-            console.log("After card removal:", currentPlayer.hand);
 
             if (currentPlayer.hand.length === 0) {
-                console.log(`[Server] Player ${playerId} (${currentPlayer.username}) has won the game.`);
                 req.app.get("io").to(`game-${gameId}`).emit("game-over", {
                     winnerId: playerId,
                     winnerUsername: currentPlayer.username
@@ -120,11 +110,8 @@ router.post(
             });
             req.app.get("io").to(`game-${gameId}`).emit("game-state", updatedState);
 
-            console.log("Card played successfully:", card);
-
             res.status(200).json({ success: true, card });
         } catch (error) {
-            console.error("Error playing card:", error);
             req.app.get("io").to(`game-${gameId}`).emit("error", { message: "Failed to play card." });
             res.status(500).json({ success: false, message: "Failed to play card." });
         }

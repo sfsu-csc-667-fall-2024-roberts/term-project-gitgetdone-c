@@ -54,13 +54,12 @@ const findByUsername = async (username: string) => {
 
 const login = async ({ email, password }: { email: string; password: string }) => {
     try {
-        // Find the user by email
         const result = await db.query(
             "SELECT * FROM users WHERE email = $1",
             [email]
         );
 
-        console.log("Database query result:", result);
+        // console.log("Database query result:", result);
 
         if (!result || result.length === 0) {
             throw new Error("Invalid email or user does not exist.");
@@ -81,7 +80,7 @@ const login = async ({ email, password }: { email: string; password: string }) =
         };
     } catch (error) {
         // @ts-ignore
-        console.error("Login error:", error.messsage);
+        // console.error("Login error:", error.messsage);
         throw error;
     }
 };

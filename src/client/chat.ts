@@ -24,8 +24,6 @@ form.addEventListener('submit', (e) => {
         });
 });
 
-// IIFE
-//(() => {
     window.socket.on(
         `message:${window.roomId}`,
         (payload: {
@@ -38,4 +36,3 @@ form.addEventListener('submit', (e) => {
 
             document.querySelector("#chat-section ul")!.appendChild(messageElement);
     })
-//})();

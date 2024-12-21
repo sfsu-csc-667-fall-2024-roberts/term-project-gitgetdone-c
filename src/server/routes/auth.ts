@@ -30,11 +30,9 @@ router.post("/register", async (request: RegisterRequest, response) => {
                 console.error("Session save error:", err);
                 return response.redirect("/auth/register");
             }
-            console.log("Session saved successfully.");
             response.redirect("/lobby");
         });
     } catch (error) {
-        // TODO: Implement error handling
         console.error(error);
         response.redirect("register");
     }
@@ -48,7 +46,6 @@ router.post("/login", async (request: LoginRequest, response) => {
     const { email, password } = request.body;
 
     try {
-        console.log("Login attempt for:", email);
         // @ts-expect-error TODO fix this error for session
         request.session.user = await Users.login({ email, password });
 
@@ -57,7 +54,6 @@ router.post("/login", async (request: LoginRequest, response) => {
                 console.error("Session save error:", err);
                 return response.redirect("/auth/login");
             }
-            console.log("Session saved successfully.");
             response.redirect("/lobby");
         });
     } catch (error) {
@@ -74,7 +70,6 @@ router.get("/logout", async (request, response) => {
         }
 
         response.clearCookie("connect.sid")
-        console.log("Logged out");
         response.redirect("/auth/login");
     });
 });

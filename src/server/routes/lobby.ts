@@ -10,8 +10,6 @@ router.get("/", checkAuthentication, chatMiddleware, async (_request, response) 
     const roomId = response.locals.roomId;
     const availableGames = await Games.availableGames();
 
-    console.log("In /lobby route handler, roomId:", roomId);
-
     response.render("lobby", { title: "Game Lobby", user, roomId, availableGames });
 });
 

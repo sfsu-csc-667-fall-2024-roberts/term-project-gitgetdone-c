@@ -6,7 +6,6 @@ const timeMiddleware = (
     next: NextFunction
 ) => {
     console.log(`Time: ${new Date()}`);
-
     next();
 };
 

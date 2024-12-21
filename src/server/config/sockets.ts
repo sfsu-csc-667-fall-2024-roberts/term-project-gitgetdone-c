@@ -38,7 +38,7 @@ export default function (server: Server, app: Express, sessionMiddleware: Reques
         io.engine.use(sessionMiddleware);
 
         io.on("connection", async (socket) => {
-            bindSession(socket);
+            await bindSession(socket);
 
             // @ts-ignore
             console.log(`client connected (${socket.request.session.id})`)

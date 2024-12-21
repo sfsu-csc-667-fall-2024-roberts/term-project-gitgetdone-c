@@ -1,36 +1,27 @@
 export const CREATE_GAME = `
-    INSERT INTO games (status, state, player_count)
-    VALUES (
-            'pending',
-            '{"players": [], "deck": [], "discardPile": [], "currentTurn": 0, "direction": 1, "playersCount": 0}'::jsonb,
-            4 
-           )
-    RETURNING *;
+INSERT INTO games (status, state, player_count)
+VALUES ('pending', '{"players": [], "deck": [], "discardPile": [], "currentTurn": 0, "direction": 1, "playersCount": 0}'::jsonb, 4)
+RETURNING *;
 `;
 
 export const ADD_PLAYER = `
 INSERT INTO game_users (game_id, user_id, seat, username)
-VALUES ($1, $2, (SELECT COUNT(*) FROM game_users WHERE game_id = $1) + 1,
-        (SELECT username FROM users WHERE id = $2))
-RETURNING 
-    game_id AS id, 
-    (SELECT COUNT(*) FROM game_users WHERE game_id = $1) AS players,
-    (SELECT player_count FROM games WHERE id = $1) AS player_count,
-    username;
+VALUES ($1, $2, (SELECT COUNT(*) FROM game_users WHERE game_id = $1) + 1, (SELECT username FROM users WHERE id = $2)) RETURNING 
+game_id AS id, 
+(SELECT COUNT(*) FROM game_users WHERE game_id = $1) AS players,
+(SELECT player_count FROM games WHERE id = $1) AS player_count,
+username;
 `;
 
 export const AVAILABLE_GAMES = `
-    SELECT * ,
-    (SELECT COUNT(*) FROM game_users WHERE games.id = game_users.game_id) AS players
-    FROM games
-    WHERE status != 'finished' AND id IN (
-        SELECT game_id
-        FROM game_users
-        GROUP BY game_id
-        HAVING COUNT(*) < player_count 
-    )
-    LIMIT $1
-    OFFSET $2;
+SELECT * ,
+(SELECT COUNT(*) FROM game_users WHERE games.id = game_users.game_id) AS players FROM games WHERE status != 'finished' AND id IN (
+SELECT game_id
+FROM game_users
+GROUP BY game_id
+HAVING COUNT(*) < player_count )
+LIMIT $1
+OFFSET $2;
 `;
 
 

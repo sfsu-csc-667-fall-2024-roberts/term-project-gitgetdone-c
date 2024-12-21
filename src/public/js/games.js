@@ -16,7 +16,7 @@
   \*****************************/
 /***/ (() => {
 
-eval("\ndocument\n    .querySelector(\"#blarg\")\n    .addEventListener(\"submit\", (event) => {\n    event.preventDefault();\n    const form = event.target;\n    fetch(form.action, { method: \"post\" });\n});\nwindow.socket.on(\"thing\", (thing) => {\n    console.log(\"Thing\", thing);\n});\n\n\n//# sourceURL=webpack://uno-project/./src/client/games.ts?");
+eval("\ndocument\n    .querySelector(\"\")\n    .addEventListener(\"submit\", (event) => {\n    event.preventDefault();\n    const form = event.target;\n    fetch(form.action, { method: \"post\" });\n});\nwindow.socket.on(\"thing\", (thing) => {\n    console.log(\"Thing\", thing);\n});\n\n\n//# sourceURL=webpack://uno-project/./src/client/games.ts?");
 
 /***/ })
 
